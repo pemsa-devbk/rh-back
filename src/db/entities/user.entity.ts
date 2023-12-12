@@ -18,10 +18,10 @@ export class User{
     name: string;
 
     @Column({
-        type:'int',
+        type:'date',
         nullable: true
     })
-    fechaNacimiento: number;
+    fnacimiento: Date;
 
     @Column({
         nullable: true

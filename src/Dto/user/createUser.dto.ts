@@ -7,12 +7,12 @@ import { CreateSeedDto } from "./seedCreate.dto";
 export class CreateUserDto extends CreateSeedDto{
     @IsOptional()
     @IsEnum (validRoles,{
-        message:'Debe ingresar un número'
+        message:'Debe ingresar un rol'
     })
     rol: string = validRoles.user;
 
     @IsString({
-        message:'Debe ser un texto'
+        message:'Debe ingresar el id de jefe directo'
     })
     idChief: string;
 }

@@ -2,11 +2,6 @@ import {IsString, IsOptional, Length, IsEmail, IsEnum, IsInt} from 'class-valida
 import { validRoles } from '../../types/enums/roles';
 
 export class upDateUserDTO {
-    @IsOptional()
-    @IsString({
-        message: 'Debe ser texto'
-    })
-    id?: string;
 
     @IsOptional()
     @IsString({

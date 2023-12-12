@@ -12,6 +12,7 @@ import { ValidStateMov } from "../types/enums/validMov";
 
 
 export const createUser = async (req: Request, res: Response) => {
+    
     if (!req.file) {
         return res.json({
             error: `error al no subir archivo`
@@ -39,7 +40,7 @@ export const createUser = async (req: Request, res: Response) => {
         const user = userRepository.create({
             ...userToCreate,
             password: bcrypt.hashSync(password, 10),
-            urlPhoto: enviroment.API_PATH + '/' + req.file.filename
+            urlPhoto: enviroment.API_PATH + '/img/' + req.file.filename
         });
         await queryRunner.manager.save(user)
 

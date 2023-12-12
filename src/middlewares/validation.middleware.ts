@@ -8,11 +8,12 @@ export const validationMiddleware = <T extends object> (dtoClass: new() => T) =>
     //nos devuelve
     return (req: Request, res:Response, next: () => void) => {
         //pasamos el texto plano
+        
         const data = plainToInstance (dtoClass, req.body);
         
 
         //crear const error para la validacion
-        const errors = validateSync(data, {whitelist: true, forbidNonWhitelisted: true});
+        const errors = validateSync(data, {whitelist: true });
 
         //buscamos que el error sea más de 0
         if(errors.length > 0){

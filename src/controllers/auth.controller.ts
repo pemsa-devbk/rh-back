@@ -22,7 +22,7 @@ export const authLogin = async (req: Request, res: Response) => {
             password: true,
             createdAt: true,
             //se agregaron los sig...
-            fechaNacimiento:true,
+            fnacimiento: true,
             urlPhoto:true,
             status:true,
             upDateAt:true,
