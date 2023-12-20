@@ -7,7 +7,7 @@ import { Contact } from "./contact.entity";
 export class User{
     @Column({
         primary:true,
-        length: 100
+        length: 5
     })
     id: string;
 
@@ -18,10 +18,57 @@ export class User{
     name: string;
 
     @Column({
+        type:'varchar'
+    })
+    position:string;
+    
+    @Column({
+        type:'varchar',
+        length:15,
+        nullable:true
+    })
+    phone:string;
+
+    @Column({
         type:'date',
         nullable: true
     })
-    fnacimiento: Date;
+    birthdate: Date;
+
+    @Column({
+        type:'varchar',
+        unique:true,
+        length:18
+    })
+    curp:string;
+
+    @Column({
+        type:'text',
+        nullable:true
+    })
+    address:string;
+
+    @Column({
+        type:'varchar',
+        nullable:true,
+        length:3
+    })
+    bloodType:string;
+
+
+    @Column({
+        type:'text',
+        nullable:true
+    })
+    allergies:string;
+
+
+    @Column({
+        type:'varchar',
+        length:11,
+        nullable:true
+    })
+    nss:string
 
     @Column({
         nullable: true

@@ -5,12 +5,12 @@ export class AuthDTO {
     @IsString({
         message:'Debe ser texto'
     })
-    @Length(6,8,{message:'lolololololl'})
+    @Length(5,5,{message:'numero de empleado no valido'})
     id: string; //Num de empleado
 
     @IsString({
-        message:'Debe ser entre 8 y 10 carateres '
+        message:'La contraseña es obligatoria'
     })
-    @Length(8,10,{})
+ 
     password: string;
 }

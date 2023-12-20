@@ -1,0 +1,22 @@
+FROM node:alpine as dev-dep
+WORKDIR /app
+COPY  package.json yarn.lock ./
+RUN npm  i
+
+FROM node:alpine as build
+WORKDIR /app
+COPY --from=dev-dep /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+FROM node:alpine as prod-dep
+WORKDIR /app
+COPY  package.json yarn.lock ./
+RUN npm i --production
+
+FROM node:alpine as prod
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY --from=prod-dep /app/node_modules ./node_modules
+CMD ["node", "dist/index.js"]
+
