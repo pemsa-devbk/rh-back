@@ -9,16 +9,18 @@ import { Bitacora } from '../db/entities/bita.entity';
 import { Contact } from "../db/entities/contact.entity";
 import { User } from '../db/entities/user.entity';
 import { ValidStateMov } from "../types/enums/validMov";
-import {join} from 'path'
-import {existsSync, readFileSync} from 'fs'
+import { join } from 'path'
+import { existsSync, readFileSync } from 'fs'
 import jsPDF from 'jspdf';
+import qrcode from 'qrcode'
+import base64 from 'base-64'
 
 
 export const createUser = async (req: Request, res: Response) => {
-    
+
     if (!req.file) {
         return res.json({
-            error: `error al no subir archivo`
+            error: `Error al no subir archivo`
         })
     }
     //saca password del usuario a crear
@@ -31,7 +33,7 @@ export const createUser = async (req: Request, res: Response) => {
     const existUser = await userRepository.exist({ where: { id: userToCreate.id } })
     if (existUser) {
         return res.status(400).json({
-            error: `${userToCreate.id} Ya existe un usuario con este id`
+            error: `${userToCreate.id} Existe un usuario con este id`
         })
     }
     const queryRunner = appDataSource.createQueryRunner()
@@ -65,9 +67,10 @@ export const createUser = async (req: Request, res: Response) => {
             })
         });
         await queryRunner.manager.save(contactAgree)
+        await createdQR(user.id)
 
         await queryRunner.commitTransaction()
-       
+
 
         delete user.password;
         res.json({
@@ -106,6 +109,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
             }
         }
     });
+    
     res.json({
         users
     })
@@ -215,9 +219,9 @@ export const deleteUser = async (req: Request, res: Response) => {
             })
         }
 
-        await userRepository.save({...user, status:false})
-        await userRepository.softDelete({id})
-       
+        await userRepository.save({ ...user, status: false })
+        await userRepository.softDelete({ id })
+
         res.json({
             user
         })
@@ -235,26 +239,26 @@ export const reactivatedUser = async (req: Request, res: Response) => {
     const userRepository = appDataSource.getRepository(User);
 
     try {
-        const user = await userRepository.findOne({where:{id}, withDeleted:true})
+        const user = await userRepository.findOne({ where: { id }, withDeleted: true })
 
         if (!user) {
             return res.status(400).json({
                 error: `Usuario no exiistente`
             })
         }
-        if(user.status){
+        if (user.status) {
             return res.status(400).json({
-                error: `El usuario ya está activo`
+                error: `El usuario ya se encuentra activo`
             })
         }
-        await userRepository.save({...user, status:true})
-        await userRepository.restore({id})
+        await userRepository.save({ ...user, status: true })
+        await userRepository.restore({ id })
 
         res.json({
             user
         })
 
-    } catch (error: any) {
+    } catch (error:any) {
 
         res.status(error.statusCode).json({
             error: error.message
@@ -262,10 +266,10 @@ export const reactivatedUser = async (req: Request, res: Response) => {
     }
 }
 
-export const photoUser = (req:Request, res:Response) => {
-    const {id} = req.params;
+export const photoUser = (req: Request, res: Response) => {
+    const { id } = req.params;
     const pathFile = join(__dirname, "..", "..", "docs", id, "img.jpg");
-    if (!existsSync(pathFile))return res.status(404).json({
+    if (!existsSync(pathFile)) return res.status(404).json({
         msg: 'No existe'
     })
 
@@ -273,9 +277,9 @@ export const photoUser = (req:Request, res:Response) => {
 }
 
 
-export const credencial = async (req:Request, res:Response) => {
+export const credencial = async (req: Request, res: Response) => {
 
-    const {id} = req.params;
+    const { id } = req.params;
     const pathFile = join(__dirname, "..", "..", "docs", id);
     const userRepository = appDataSource.getRepository(User);
 
@@ -290,103 +294,135 @@ export const credencial = async (req:Request, res:Response) => {
         })
     }
 
-    console.log(userFind);
-    
     createCredencial(userFind)
 
-   res.sendFile(`${pathFile}/credencial.pdf`)
+    res.sendFile(`${pathFile}/credencial.pdf`)
 }
 
-export const publicUser = async( req:Request, res:Response ) => {
+export const publicUser = async (req: Request, res: Response) => {
     const userRepository = appDataSource.getRepository(User);
 
-    const {id} = req.params;
+    const { id } = req.params;
     const user = await userRepository.findOne({
-        where:{ id:id},
-        select:{
-            id:true,
-            name:true,
-            position:true,
-            status:true
-        },
+        where: { id: id },
+        select: {
+            id: true,
+            name: true,
+            position: true,
+            status: true
+        }
     });
-   
-    
+
+
     res.json({
         user
     })
 }
 
-const createCredencial = (user:User) => {
+const createCredencial = (user: User) => {
 
-    const pathFile = join(__dirname, "..", "..", "docs", user.id);
-    
-    const doc = new jsPDF();
+    const pathFile = join(__dirname, "..", "..", "docs");
 
-    
-    const img = readFileSync(`${pathFile}\\img.jpg`);
-    doc.addImage(img, "JPEG", 5, 47, 60, 70);
-    doc.setFontSize(30);
-    doc.setTextColor(254, 5, 5);
-    doc.text("CREDENCIAL", 10, 30);
-    doc.setFillColor(254, 5, 5);
-    doc.rect(5, 32, 150, 5, "F");
+    const doc = new jsPDF({
+        unit: 'px',
+    });
+    const imgUser = readFileSync(`${pathFile}\\${user.id}\\img.jpg`);
+    const qrUser = readFileSync(`${pathFile}\\${user.id}\\qr.png`);
+    const imgRP = readFileSync(`${pathFile}\\21003\\firma.png`);
+    const logo1 = readFileSync(join(__dirname,"../..","public\\img\\logo1.png"));
+    const logo2 = readFileSync(join(__dirname,"../..","public\\img\\logo2.png"));
+
+    //User image
+    doc.addImage(imgUser, "JPEG", 18, 104.91, 114, 128);
+    // logo 1 image
+    doc.addImage(logo1, "JPEG", 348, 52.91, 91, 66);
+    // logo 2 image
+    doc.addImage(logo2, "JPEG", 348, 333.91, 91, 115);
+    // QR image
+    doc.addImage(qrUser, "PNG", 18, 388.91, 91, 91);
+    // firma user image
+    // doc.addImage(imgUser, "JPEG", 18, 251.91, 114, 45);
+    // firma rep legal 
+    doc.addImage(imgRP, "PNG", 153, 385.91, 137, 39);
+
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(22.28);
+    doc.setTextColor(162, 35, 40);
+    doc.text("CREDENCIAL", 23, 68.91);
+    doc.setFillColor(162, 35, 40);
+    doc.rect(9, 71.91, 324, 11, "F");
     doc.setFillColor(0, 0, 102);
-    doc.rect(5, 41, 150, 5, "F");
+    doc.rect(9, 91.91, 324, 11, "F");
 
+
+    doc.setFont("helvetica", "bold")
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(18);
-    doc.text(user.name, 70, 70);
-    doc.setFontSize(16);
-    doc.text(user.position, 70, 80);
+    doc.setFontSize(17.6);
+    doc.text(user.name, 147, 138.91);
+    doc.setFontSize(13.11);
+    doc.text(user.position, 147, 155.91);
 
 
     //textos en  rojo
-    doc.setFontSize(14);
-    doc.setTextColor(254, 5, 5);
-    doc.text("NO. EMPLEADO:", 70, 90);
-    doc.text("TIPO DE SANGRE:", 130, 90);
-    doc.text("VIGENCIA:", 70, 100);
-    doc.text("NSS:", 130, 100);
-    doc.text("TELÉFONO:", 70, 110);
-    doc.text("CUIP:", 130, 110);
-    doc.text("ALÉRGICO A ALGÚN MEDICAMENTO:", 70, 120);
-    doc.text("CURP:", 70, 130);
-    doc.text("DOMICILIO:", 70, 140);
-    doc.text("FIRMA DEL USUARIO:", 5, 155);
+    doc.setFontSize(11.23);
+    doc.setTextColor(162, 35, 40);
+    doc.text("NO. EMPLEADO:", 147, 177.91);
+    doc.text("TIPO DE SANGRE:", 305, 177.91);
+    doc.text("VIGENCIA:", 147, 198.91);
+    doc.text("NSS:", 305, 198.91);
+    doc.text("TELÉFONO:", 147, 218.91);
+    doc.text("CUIP:", 305, 218.91);
+    doc.text("ALÉRGICO A ALGÚN MEDICAMENTO:", 147, 241.91);
+    doc.text("CURP:", 147, 262.91);
+    doc.text("DOMICILIO:", 147, 282.91);
+    doc.text("FIRMA DEL USUARIO", 31, 309.91);
 
     //TEXTOS EN NEGRO (EDITAR)
     doc.setTextColor(0, 0, 0);
-    doc.text(user.id, 112, 90);
     doc.setFont("helvetica", "bold")
-    doc.text(user.bloodType||"", 175, 90);
-    doc.text("2024", 97, 100);
-    doc.text(user.nss||"", 143, 100);
-    doc.text(user.phone||"", 100, 110);
-    doc.text(user.allergies||"Ninguno", 160, 120);
-    doc.text(user.curp, 90, 130);
-    doc.text(user.address||"", 100, 140, {maxWidth: 90});
-
-
+    doc.text(user.id, 235, 177.91);
+    doc.text(user.bloodType || "", 395, 177.91);
+    doc.text("2024", 235, 198.91);
+    doc.text(user.nss || "", 355, 198.91);
+    doc.text(user.phone || "", 235, 218.91);
+    doc.text(user.cuip || "82952592", 341, 218.91);
+    doc.text(user.allergies || "Ninguno", 309, 241.91);
+    doc.text(user.curp, 235, 262.91);
+    doc.text(user.address || "", 235, 282.91, { maxWidth: 180 });
 
     //PARTE TRASERA
-    doc.setFillColor(254, 5, 5);
-    doc.rect(5, 170, 150, 5, "F");
+    doc.setFillColor(162, 35, 40);
+    doc.rect(9, 344.91, 324, 11, "F");
     doc.setFillColor(0, 0, 102);
-    doc.rect(5, 179, 150, 5, "F");
+    doc.rect(9, 364.91, 324, 11, "F");
 
-    doc.text("FIRMA DEL REPRESENTANTE LEGAL", 105, 215, undefined, "center");
-    doc.text("PROTECCION ELECTRONICA MONTERREY S.A. DE C.V.", 105, 222, undefined, "center");
-    doc.text("33 PONIENTE 307 COL. CHULAVISTA C.P. 72420", 105, 229, undefined, "center");
-    doc.text("PUEBLA, PUE. T:222 141 1230 / 222 243 3339 / 222 240 6378", 105, 235, undefined, "center");
-    doc.text("www.pem-sa.com", 105, 242, undefined, "center");
-    
-    doc.text("PERIMISO SSP FEDERAL: DGSP/303-16/3302", 105, 250, undefined, "center");
-    doc.text("PERMISO SSP EDO. DE PUEBLA: SSP/SUBCOP/DGSP/114-15/109", 105, 257, undefined, "center");
-    doc.text("REPSE: STPS/UTD/DGIFT/AR10508/2021", 105, 263, undefined, "center");
-    doc.text("Registro Patronal: E061123710", 105, 270, undefined, "center");
-    doc.text("ESTE DOCUMENTO ES OFICIAL DE PROTECCION ELETRONICA MONTERREY S.A. DE C.V.", 105, 280, undefined, "center");
-    doc.text("AMPARA SERVICIOS Y RESPONABILIDADES. ES PERSONAL E INTRANSFERIBLE", 105, 287, undefined, "center");
+    doc.setFontSize(9.36);
+    doc.setTextColor(0, 0, 102);
+    doc.text("FIRMA DEL REPRESENTANTE LEGAL", 223, 432.91, undefined, "center");
+    doc.text("PROTECCION ELECTRONICA MONTERREY S.A. DE C.V.", 223, 446.91, undefined, "center");
+    doc.text("33 PONIENTE 307 COL. CHULAVISTA C.P. 72420", 223, 458.91, undefined, "center");
+    doc.text("PUEBLA, PUE. T:222 141 1230 / 222 243 3339 / 222 240 6378", 223, 470.91, undefined, "center");
+    doc.text("www.pem-sa.com", 223, 484.91, undefined, "center");
 
-    doc.save(`${pathFile}/credencial.pdf`);
+    doc.text("PERIMISO SSP FEDERAL: DGSP/303-16/3302", 223, 502.91, undefined, "center");
+    doc.text("PERMISO SSP EDO. DE PUEBLA: SSP/SUBCOP/DGSP/506-23/460", 223, 516.91, undefined, "center");
+    doc.text("REPSE: STPS/UTD/DGIFT/AR10508/2021", 223, 527.91, undefined, "center");
+    doc.text("Registro Patronal: E061123710", 223, 539.91, undefined, "center");
+    doc.text("ESTE DOCUMENTO ES OFICIAL DE PROTECCION ELETRONICA MONTERREY S.A. DE C.V.", 223, 559.91, undefined, "center");
+    doc.text("AMPARA SERVICIOS Y RESPONABILIDADES. ES PERSONAL E INTRANSFERIBLE", 223, 572.91, undefined, "center");
+
+
+    doc.save(`${pathFile}/${user.id}/credencial.pdf`);
+}
+
+const createdQR = async (id:string) => {
+    const pathFile = join(__dirname, "..", "..", "docs", id, "qr.png");
+    const idEncode = base64.encode(id);
+    await qrcode.toFile(pathFile, `https://www.pem-sa.com.mx/personal/${idEncode}`, {
+        color: { 
+            dark:'#00F', 
+            light: '#0000'
+        }
+    })
 }

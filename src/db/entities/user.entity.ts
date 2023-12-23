@@ -71,6 +71,12 @@ export class User{
     nss:string
 
     @Column({
+        type:'varchar',
+        nullable:true
+    })
+    cuip:string
+
+    @Column({
         nullable: true
     })
     urlPhoto: string;

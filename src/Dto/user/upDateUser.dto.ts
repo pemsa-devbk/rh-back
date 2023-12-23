@@ -48,6 +48,10 @@ export class upDateUserDTO {
     @IsOptional()
     @Length(11,11)
     nss:string;
+    
+    @IsOptional()
+    @IsString()
+    cuip:string;
 
     @IsOptional()
     @IsInt({

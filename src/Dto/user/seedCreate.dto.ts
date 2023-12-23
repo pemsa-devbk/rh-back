@@ -50,6 +50,10 @@ export class CreateSeedDto{
     @Length(11,11)
     nss:string;
 
+    @IsOptional()
+    @IsString()
+    cuip:string;
+
     @IsInt({
         message: "Registre el ID de estado para la oficina"
     })

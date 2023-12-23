@@ -3,7 +3,6 @@ import { validRoles } from "../../types/enums/roles";
 import { CreateSeedDto } from "./seedCreate.dto";
 
 
-
 export class CreateUserDto extends CreateSeedDto{
     @IsOptional()
     @IsEnum (validRoles,{
