@@ -1,5 +1,5 @@
-import 'express-serve-static-core'
-import { User } from "../../db/entities/user.entity";
+import "express-serve-static-core";
+import { User } from '../../db/entities/user.entity';
 
 
 declare module 'express-serve-static-core' {
@@ -7,3 +7,4 @@ declare module 'express-serve-static-core' {
         user?: User,
     }
 }
+

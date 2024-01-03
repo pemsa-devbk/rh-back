@@ -1,19 +1,26 @@
+#Etapa 1. Dependencias de desarrollo
 FROM node:alpine as dev-dep
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
-COPY  package.json yarn.lock ./
-RUN npm  i
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
+#Etapa 2. Build 
 FROM node:alpine as build
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 COPY --from=dev-dep /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
+# Etapa 3. Dependencias de produccion
 FROM node:alpine as prod-dep
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
-COPY  package.json yarn.lock ./
-RUN npm i --production
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --production 
 
+#Etapa 4. Crear la imagen final
 FROM node:alpine as prod
 WORKDIR /app
 COPY --from=build /app/dist ./dist

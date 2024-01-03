@@ -10,7 +10,7 @@ import { Contact } from "../db/entities/contact.entity";
 import { User } from '../db/entities/user.entity';
 import { ValidStateMov } from "../types/enums/validMov";
 import { join } from 'path'
-import { existsSync, readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import jsPDF from 'jspdf';
 import qrcode from 'qrcode'
 import base64 from 'base-64'
@@ -109,6 +109,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
             }
         }
     });
+    
     
     res.json({
         users
@@ -268,12 +269,16 @@ export const reactivatedUser = async (req: Request, res: Response) => {
 
 export const photoUser = (req: Request, res: Response) => {
     const { id } = req.params;
-    const pathFile = join(__dirname, "..", "..", "docs", id, "img.jpg");
-    if (!existsSync(pathFile)) return res.status(404).json({
+
+    const pathFile = join(__dirname, "..", "..", "docs", id);
+    const files = readdirSync(pathFile);
+    
+    const fileImgUser = files.find(file => file.includes('img'));
+    if (!fileImgUser) return res.status(404).json({
         msg: 'No existe'
     })
 
-    res.sendFile(pathFile)
+    res.sendFile(`${pathFile}/${fileImgUser}`)
 }
 
 
@@ -319,29 +324,34 @@ export const publicUser = async (req: Request, res: Response) => {
     })
 }
 
-const createCredencial = (user: User) => {
+const createCredencial = async(user: User) => {
 
     const pathFile = join(__dirname, "..", "..", "docs");
+    
 
     const doc = new jsPDF({
         unit: 'px',
     });
-    const imgUser = readFileSync(`${pathFile}\\${user.id}\\img.jpg`);
-    const qrUser = readFileSync(`${pathFile}\\${user.id}\\qr.png`);
-    const imgRP = readFileSync(`${pathFile}\\21003\\firma.png`);
-    const logo1 = readFileSync(join(__dirname,"../..","public\\img\\logo1.png"));
-    const logo2 = readFileSync(join(__dirname,"../..","public\\img\\logo2.png"));
+    const logo1 = readFileSync(join(__dirname,"../..","public/img/logo1.png"));
+    const logo2 = readFileSync(join(__dirname,"../..","public/img/logo2.png"));
+    const imgRP = readFileSync(`${pathFile}/21003/firma.png`);
+    const files = readdirSync(`${pathFile}/${user.id}`);
+  
+    const fileImgUser = files.find(file => file.includes('img'));
+    
+    const firmUser = readFileSync(`${pathFile}/${user.id}/firma.png`);
+    const qrUser = readFileSync(`${pathFile}/${user.id}/qr.png`);
 
     //User image
-    doc.addImage(imgUser, "JPEG", 18, 104.91, 114, 128);
+    fileImgUser && doc.addImage(readFileSync(`${pathFile}/${user.id}/${fileImgUser}`), fileImgUser.includes('png')? "PNG" :"JPEG", 18, 104.91, 114, 128);
     // logo 1 image
-    doc.addImage(logo1, "JPEG", 348, 52.91, 91, 66);
+    doc.addImage(logo1, "PNG", 348, 52.91, 91, 66);
     // logo 2 image
-    doc.addImage(logo2, "JPEG", 348, 333.91, 91, 115);
+    doc.addImage(logo2, "PBG", 348, 333.91, 91, 115);
     // QR image
     doc.addImage(qrUser, "PNG", 18, 388.91, 91, 91);
     // firma user image
-    // doc.addImage(imgUser, "JPEG", 18, 251.91, 114, 45);
+    doc.addImage(firmUser, "PNG", 18, 251.91, 114, 45);
     // firma rep legal 
     doc.addImage(imgRP, "PNG", 153, 385.91, 137, 39);
 
