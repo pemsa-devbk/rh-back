@@ -1,0 +1,1 @@
+docker run -d --name rh_back --restart always -v $(pwd)/public:/app/public -v $(pwd)/certs:/app/dist/certs -v $(pwd)/docs:/app/docs -p 7003:3000 -e PORT=3000 -e HOST="192.168.1.123" -e DB_USERNAME="sa" -e PASSWORD="Pemsa850827+" -e DATABASE="rh" -e API_PATH="https://rehunames.pem-sa.com.mx" rhback:latest

@@ -71,7 +71,7 @@ router.patch('/reintegro/:id', [authentication], reactivatedUser)
 
 router.get('/img/:id', photoUser)
 router.get('/credencial/:id', [authentication, autorizationCheck([validRoles.admin, validRoles.consultas])], credencial)
-router.get('/user-public/:id', publicUser)
+router.get('/public/:id', publicUser)
 
 router.delete('/:id', [authentication, autorizationCheck([validRoles.admin])], deleteUser)
 

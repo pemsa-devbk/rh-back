@@ -1,4 +1,6 @@
 export enum validRoles {
+    // super-admin // TODO
+
     admin = 'Admin',// puede hacer todo (TODO)
 
     manager = 'Manager', //Puede dar de alta /Editar

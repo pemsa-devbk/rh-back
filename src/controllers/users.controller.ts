@@ -314,7 +314,8 @@ export const publicUser = async (req: Request, res: Response) => {
             id: true,
             name: true,
             position: true,
-            status: true
+            status: true,
+            urlPhoto: true
         }
     });
 
@@ -429,10 +430,5 @@ const createCredencial = async(user: User) => {
 const createdQR = async (id:string) => {
     const pathFile = join(__dirname, "..", "..", "docs", id, "qr.png");
     const idEncode = base64.encode(id);
-    await qrcode.toFile(pathFile, `https://www.pem-sa.com.mx/personal/${idEncode}`, {
-        color: { 
-            dark:'#00F', 
-            light: '#0000'
-        }
-    })
+    await qrcode.toFile(pathFile, `https://www.pem-sa.com.mx/personal/${idEncode}`, {type: 'png'})
 }
