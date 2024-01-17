@@ -30,8 +30,13 @@ export class User{
     phone:string;
 
     @Column({
+        type: 'char',
+        length: 1,
+    })
+    gender: string;
+
+    @Column({
         type:'date',
-        nullable: true
     })
     birthdate: Date;
 
@@ -97,7 +102,12 @@ export class User{
     @UpdateDateColumn()
     upDateAt: Date;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        // transformer: {
+        //     from: (value) => value,
+        //     to: (value) => value 
+        // },
+    })
     createdAt: Date;
 
     @DeleteDateColumn()
@@ -113,7 +123,8 @@ export class User{
 
     @OneToMany(
         () => Bitacora,
-        (bitacora) => bitacora.createdBy
+        (bitacora) => bitacora.createdBy,
+        {onDelete: 'CASCADE'}
     )
     movRealizados: Bitacora[];
     
@@ -122,7 +133,7 @@ export class User{
         () => State,
         (state) => state.users
     )
-    state: State;
+    region: State;
 
     @OneToMany(
         () => User,

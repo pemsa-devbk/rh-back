@@ -1,33 +1,38 @@
-import { IsString, Length, IsInt, IsDefined, ValidateNested, IsOptional} from "class-validator";
+import { IsString, Length, IsInt, IsDefined, ValidateNested, IsOptional, IsEnum, IsDateString, IsIn} from "class-validator";
 import { CreateContactDTO } from "../contact/createContact.dto";
 import { Type } from "class-transformer";
+import { BloodType } from "../../types/enums/blood";
 
 
 export class CreateSeedDto{
     @IsString({
-        message:'Debe ingresar el ID para el usuario'
+        message:'El número de empleado es requerido'
     })
     @Length(5,5,{})
     id: string; //Num de empleado
 
     @IsString({
-        message:'Ingrese el nombre completo del usuario'
+        message:'El nombre del empleado es obligatorio'
     })
     @Length(10,100)
     name: string; //nombre oficial del empleado
 
     @IsString({
-        message: "Debe indicar el puesto de este usuario"
+        message: "El puesto del empleado es obligatorio"
     })
     position:string;
 
+    @IsIn(['M', 'F'])
+    gender: string;
+
     @IsOptional()
-    @Length(10,15)
+    @Length(10,10, {message: 'El numero de télefono debe tener entre 10 digitos'})
     phone:string;
 
     @IsOptional()
-    @IsString({
-        message: ""
+    @IsDateString({strict: true},{
+        message: "Algo aqui paso",
+
     })
     birthdate:Date;
 
@@ -38,8 +43,8 @@ export class CreateSeedDto{
     @IsString()
     address:string;
 
-    @IsOptional()
-    @Length(2,3)
+    @IsOptional({})
+    @IsEnum(BloodType)
     bloodType:string;
 
     @IsOptional()

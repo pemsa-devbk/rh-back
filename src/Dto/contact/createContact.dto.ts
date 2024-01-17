@@ -1,11 +1,12 @@
-import { IsIn, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { ValidContact } from "../../types/enums/contact";
 
 
 export class CreateContactDTO {
     @IsString({message: 'El contacto debe ser una cadena'})
     contact: string;
 
-    @IsIn([1,2], {message: 'Debe definir el tipo de contacto'})
+    @IsEnum(ValidContact, {message: 'El tipo de contacto es obligatorio'})
     type: number;
 
     @IsOptional()

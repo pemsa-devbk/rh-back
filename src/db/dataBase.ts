@@ -13,7 +13,7 @@ export const appDataSource = new DataSource ({
     username: enviroment.USERNAME,
     password: enviroment.PASSWORD,
     database: enviroment.DATABASE,
-    synchronize: true, 
+    // synchronize: true, 
     // logging: true,
     entities: [User, Mov, Bitacora, Contact, State],
     extra: {

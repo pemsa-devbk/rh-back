@@ -25,7 +25,7 @@ export const validationMiddleware = <T extends object> (dtoClass: new() => T) =>
     }
 }
 
-const getErrors = (errors:ValidationError[],property?:string): string[] => {
+export const getErrors = (errors:ValidationError[],property?:string): string[] => {
     return errors.flatMap((error) =>{
         if(error.children?.length >0 ) return getErrors(error.children,`${property ? `${property}-` : ''}${error.property || ''}`)
         return `${property? `${property} `: ''}${Object.values(error.constraints)[0]}`

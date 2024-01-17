@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 
 export const getRoles = (req:Request, res: Response) =>{
-    
     res.json({
         roles: [
-            'Admin',
-            'Manager',
-            'Consultas',
-            'User'
+            ['admin', 'Administrador'],
+            ['manager', 'Auxiliar administrativo'],
+            ['query', 'Consultas'],
+            ['user', 'Usuario'],
         ]
     })
 }

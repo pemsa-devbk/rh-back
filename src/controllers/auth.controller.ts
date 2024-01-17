@@ -30,17 +30,17 @@ export const authLogin = async (req: Request, res: Response) => {
             
         },
         relations: {
-            state: true
+            region: true
         }
     });
     
     if(user && bcrypt.compareSync(login.password, user.password)){
         delete user.password;
-        const {state, ...userInfo} = user;
+        const {region, ...userInfo} = user;
         return res.json({
             user: {
                 ...userInfo,
-                state: state.name
+                region: region.name
             },
             token: generateToken(user.id)
         })

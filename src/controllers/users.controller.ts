@@ -17,14 +17,14 @@ import base64 from 'base-64'
 
 
 export const createUser = async (req: Request, res: Response) => {
-
-    if (!req.file) {
+    
+    if (Object.keys(req.files).length != 2) {
         return res.json({
             error: `Error al no subir archivo`
         })
     }
     //saca password del usuario a crear
-    const { password, contacts, ...userToCreate } = plainToInstance(CreateUserDto, req.body);
+    const { password, contacts, idState, idChief, ...userToCreate } = plainToInstance(CreateUserDto, req.body);
     const userRepository = appDataSource.getRepository(User);
     const contactRepository = appDataSource.getRepository(Contact);
     const bitacoraReposirtory = appDataSource.getRepository(Bitacora);
@@ -45,8 +45,14 @@ export const createUser = async (req: Request, res: Response) => {
         // del uausario a crear debemos 
         const user = userRepository.create({
             ...userToCreate,
+            userChief:{
+                id: idChief
+            },
+            region: {
+                id: idState
+            },
             password: bcrypt.hashSync(password, 10),
-            urlPhoto: enviroment.API_PATH + '/users/img/' + req.file.filename
+            urlPhoto: enviroment.API_PATH + '/users/img/' + userToCreate.id
         });
         await queryRunner.manager.save(user)
 
@@ -97,16 +103,15 @@ export const getAllUsers = async (req: Request, res: Response) => {
     //buscamos a todos lo usuarios y después se muestran
     const users = await userRepository.find({
         relations: {
-            //contacts: true,
-            userChief: true,
-            state: true
-            //misMovs: true,
-
+            region: true
         }, withDeleted: true,
         select: {
-            userChief: {
-                name: true
-            }
+            id: true,
+            rol: true,
+            name: true,
+            curp: true,
+            createdAt: true,
+            status: true
         }
     });
     
@@ -129,7 +134,7 @@ export const getOneUser = async (req: Request, res: Response) => {
                 movType: true
             },
             userChief: true,
-            state: true,
+            region: true,
             contacts: true
         },
         select: {
@@ -139,10 +144,20 @@ export const getOneUser = async (req: Request, res: Response) => {
                 createdBy: {
                     id: true,
                     name: true
+                },
+                movType:{
+                    nameMov: true
                 }
+            },
+            userChief:{
+                id: true,
+                name: true
             }
-        }
+        },
+
     });
+    // console.log(userFind);
+    
 
     if (!userFind) {
         return res.status(404).json({
@@ -155,7 +170,7 @@ export const getOneUser = async (req: Request, res: Response) => {
 }
 
 export const upDateUser = async (req: Request, res: Response) => {
-    const userUpDate = plainToInstance(upDateUserDTO, req.body);
+    const { idChief, idState, ...userUpDate } = plainToInstance(upDateUserDTO, req.body);
     const { id } = req.params;
 
     //definición de repositorios/
@@ -163,7 +178,9 @@ export const upDateUser = async (req: Request, res: Response) => {
     const bitacoraReposirtory = appDataSource.getRepository(Bitacora);
 
     //verifica la existencia del usuario
-    const userFind = await userRepository.findOne({ where: { id: id } })
+    const userFind = await userRepository.findOne({ where: { id: id }});
+
+    
     if (!userFind) {
         return res.status(404).json({
             error: 'Usuario no encontrado'
@@ -177,15 +194,23 @@ export const upDateUser = async (req: Request, res: Response) => {
 
     try {
         const userSave = userRepository.create({
-            ...userFind, ...userUpDate, id
+            ...userFind, ...userUpDate, id,
+            userChief:{
+                id: idChief
+            },
+            region:{
+                id: idState
+            }
         })
+        
+
         await queryRunner.manager.save(userSave)
 
         const bita = bitacoraReposirtory.create({
             userModificado: userFind,
             createdBy: req.user,
             movType: {
-                id: ValidStateMov.vacaciones
+                id: ValidStateMov.edicion
             }
         })
         await queryRunner.manager.save(bita)
@@ -209,61 +234,100 @@ export const upDateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userRepository = appDataSource.getRepository(User);
-    try {
-        const user = await userRepository.findOneBy({
-            id
+    const bitacoraReposirtory = appDataSource.getRepository(Bitacora);
+
+    // Verificar la existencia del usuario
+    const user = await userRepository.findOneBy({
+        id
+    });
+    if (!user) {
+        return res.status(400).json({
+            error: `Usuario no exiistente`
         })
+    }
 
-        if (!user) {
-            return res.status(400).json({
-                error: `Usuario no exiistente`
-            })
-        }
+    //Inicio de transacción 
+    const queryRunner = appDataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
 
-        await userRepository.save({ ...user, status: false })
-        await userRepository.softDelete({ id })
+
+    try {
+        await queryRunner.manager.save(User,{ ...user, status: false });
+        await queryRunner.manager.softDelete(User,{id});
+
+        const bita = bitacoraReposirtory.create({
+            userModificado: user,
+            createdBy: req.user,
+            movType: {
+                id: ValidStateMov.baja
+            }
+        })
+        await queryRunner.manager.save(bita)
+        await queryRunner.commitTransaction()
 
         res.json({
             user
         })
-    } catch (error: any) {
-        res.status(error.statusCode).json({
-            error: error.message
+    } catch (error) {
+        await queryRunner.rollbackTransaction()
+        res.status(500).json({
+            error: `${error}`
         })
+    } finally {
+        await queryRunner.release()
     }
 }
-
 
 
 export const reactivatedUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userRepository = appDataSource.getRepository(User);
+    const bitacoraReposirtory = appDataSource.getRepository(Bitacora);
+
+    const user = await userRepository.findOne({ where: { id }, withDeleted: true })
+
+    if (!user) {
+        return res.status(400).json({
+            error: `Usuario no exiistente`
+        })
+    }
+    if (user.status) {
+        return res.status(400).json({
+            error: `El usuario ya se encuentra activo`
+        })
+    }
+
+    //Inicio de transacción 
+    const queryRunner = appDataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
 
     try {
-        const user = await userRepository.findOne({ where: { id }, withDeleted: true })
+        await queryRunner.manager.save(User,{ ...user, status: true })
+        await queryRunner.manager.restore(User,{ id });
 
-        if (!user) {
-            return res.status(400).json({
-                error: `Usuario no exiistente`
-            })
-        }
-        if (user.status) {
-            return res.status(400).json({
-                error: `El usuario ya se encuentra activo`
-            })
-        }
-        await userRepository.save({ ...user, status: true })
-        await userRepository.restore({ id })
+        const bita = bitacoraReposirtory.create({
+            userModificado: user,
+            createdBy: req.user,
+            movType: {
+                id: ValidStateMov.reintegro
+            }
+        })
+        await queryRunner.manager.save(bita)
+        await queryRunner.commitTransaction()
 
         res.json({
             user
         })
 
-    } catch (error:any) {
-
-        res.status(error.statusCode).json({
-            error: error.message
+    } catch (error) {
+        await queryRunner.rollbackTransaction()
+        res.status(500).json({
+            error: `${error}`
         })
+    } finally {
+        await queryRunner.release()
     }
 }
 
@@ -316,7 +380,8 @@ export const publicUser = async (req: Request, res: Response) => {
             position: true,
             status: true,
             urlPhoto: true
-        }
+        },
+        withDeleted: true
     });
 
 
@@ -339,8 +404,8 @@ const createCredencial = async(user: User) => {
     const files = readdirSync(`${pathFile}/${user.id}`);
   
     const fileImgUser = files.find(file => file.includes('img'));
-    
-    const firmUser = readFileSync(`${pathFile}/${user.id}/firma.png`);
+    const fileFirUser = files.find(file => file.includes('firma'));
+
     const qrUser = readFileSync(`${pathFile}/${user.id}/qr.png`);
 
     //User image
@@ -352,7 +417,7 @@ const createCredencial = async(user: User) => {
     // QR image
     doc.addImage(qrUser, "PNG", 18, 388.91, 91, 91);
     // firma user image
-    doc.addImage(firmUser, "PNG", 18, 251.91, 114, 45);
+    fileFirUser && doc.addImage(readFileSync(`${pathFile}/${user.id}/${fileFirUser}`), "PNG", 18, 251.91, 114, 45);
     // firma rep legal 
     doc.addImage(imgRP, "PNG", 153, 385.91, 137, 39);
 

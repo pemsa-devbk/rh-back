@@ -14,7 +14,7 @@ export class State{
     //Relaciones que tiene con usuario:
     @OneToMany(
         () => User,
-        (user) =>user.state
+        (user) =>user.region
     )
     users: User[]
 }

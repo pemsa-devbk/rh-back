@@ -23,8 +23,6 @@ export class Server {
         auth: '/auth',
         seed: '/seed',
         config:'/config',
-        // states:'/states',
-        // rols: '/roles',
     }
     constructor () {
         this.port= 3000;
@@ -48,7 +46,6 @@ export class Server {
         //this. porque vas a usar una propiedad
         this.app.use (this.paths.users, userRoutes);
         this.app.use (this.paths.config, configRoutes);
-        // this.app.use (this.paths.states, statesOffi);
         
         this.app.use (this.paths.movs, movsRoutes);
         this.app.use (this.paths.contact, contactRoutes);
@@ -66,8 +63,6 @@ export class Server {
             this.handleErrors();
         })
         .catch((err) => {
-            console.log(err);
-            
             if(intentConect == 0){
                 logger.error('Fallo en la conexión de la base de datos, aplicación terminada');
                 throw 'Ha finalizado la aplicación';

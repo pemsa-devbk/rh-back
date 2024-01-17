@@ -14,24 +14,24 @@ const router = Router();
  * body contact
  */
 
-router.post('/:id',[authentication, validationMiddleware(CreateContactDTO), autorizationCheck([validRoles.admin, validRoles.manager])], createContact)
+router.post('/:id',[authentication, validationMiddleware(CreateContactDTO), autorizationCheck([validRoles.ADMIN, validRoles.MANAGER])], createContact)
 
 
-router.get('/', [authentication, autorizationCheck([validRoles.admin, validRoles.consultas])],getAllContact)
+router.get('/', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER])],getAllContact)
 
 
-router.get('/:id', [authentication, autorizationCheck([validRoles.admin, validRoles.consultas])],getOneContact)
+router.get('/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER])],getOneContact)
 
 
 /**
  * id params del contacto a editar
  * body datos a actualizar
  */
-router.patch('/edit/:id', [authentication, autorizationCheck([validRoles.admin, validRoles.manager])],upDateContact)
+router.patch('/edit/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER])],upDateContact)
 
 /**
  * id params del contacto a eliminar 
  */
-router.delete('/:id', [authentication, autorizationCheck([validRoles.admin])], deleteContact)
+router.delete('/:id', [authentication, autorizationCheck([validRoles.ADMIN])], deleteContact)
 
 export default router;

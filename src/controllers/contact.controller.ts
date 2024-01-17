@@ -37,6 +37,7 @@ export const createContact = async (req: Request, res: Response) => {
 }
 
 
+// TODO: Validar 
 //GET ALL CONTACTS USER-ID
 export const getAllContact = async (req: Request, res: Response) => {
     //logica de negocio:
@@ -61,7 +62,7 @@ export const getAllContact = async (req: Request, res: Response) => {
 
 
 
-
+// TODO
 export const getOneContact = async (req: Request, res: Response) => {
     //logica de negocio:
     const contactRepository = appDataSource.getRepository(Contact);
@@ -69,7 +70,7 @@ export const getOneContact = async (req: Request, res: Response) => {
     //const contactRepository = appDataSource.getRepository(Contact);
 
     //Para que el usuario no vea los contactos de otros, solo el suyo
-    if(req.user.rol == validRoles.user && req.user.id != id){
+    if(req.user.rol == validRoles.USER && req.user.id != id){
         return res.status(401).json({
             error: `No se tinen los permisos para esta acción`
         })

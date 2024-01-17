@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Length, IsEmail, IsEnum, IsInt } from 'class-validator'
+import { IsString, IsOptional, Length, IsEmail, IsEnum, IsInt, IsDateString, IsIn } from 'class-validator'
 import { validRoles } from '../../types/enums/roles';
 
 export class upDateUserDTO {
@@ -14,44 +14,49 @@ export class upDateUserDTO {
     @IsString({
         message:'Indique el puesto de este usuario'
     })
-    position:string;
+    position?:string;
 
     @IsOptional()
     @Length(10,15)
-    phone:string;
+    phone?:string;
 
     @IsOptional()
-    @IsString({
+    @IsIn(['M', 'F'])
+    gender: string;
+
+    @IsOptional()
+    @IsDateString({strict: true},{
         message:'Ingrese fecha de nacimiento por número y separados por - '
     })
-    birthdate:Date;
+    birthdate?:Date;
 
+    @IsOptional()
     @Length(18,18)
-    curp:string;
+    curp?:string;
 
     @IsOptional()
     @IsString({
         message:'Ingrese la dirección del usuario '
     })
-    address:string;
+    address?:string;
 
     @IsOptional()
     @Length(2,3)
-    bloodType:string;
+    bloodType?:string;
 
     @IsOptional()
     @IsString({
         message:'Ingrese que tipo de alergias padece este usuario'
     })
-    allergies:string;
+    allergies?:string;
 
     @IsOptional()
     @Length(11,11)
-    nss:string;
+    nss?:string;
     
     @IsOptional()
     @IsString()
-    cuip:string;
+    cuip?:string;
 
     @IsOptional()
     @IsInt({
@@ -79,7 +84,7 @@ export class upDateUserDTO {
     @IsEnum(validRoles, {
         message: 'Debe ser un rol'
     })
-    rol: string = validRoles.user;
+    rol: string = validRoles.USER;
 
     @IsOptional()
     @IsString({

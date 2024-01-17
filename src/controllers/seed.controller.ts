@@ -49,13 +49,13 @@ export const seedUser = async (req: Request, res: Response) => {
         ////En caso de no encontrar un usuario entonces se crea el usuario:
         const user = userRepository.create({
             ...seedUser,
-            state: {
+            region: {
                 id: seedUser.idState
             },
             //instalar el bcrypt y sus types para poder encriptar el password:
             password: bcrypt.hashSync(password, 10),
             //añadir el archivo de los roles para el manejo de ellos
-            rol: validRoles.admin
+            rol: validRoles.ADMIN
         })
         await queryRunner.manager.save(user)
 

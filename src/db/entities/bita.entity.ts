@@ -21,13 +21,13 @@ export class Bitacora{
     @ManyToOne(
         () => User,
         (user) => user.movRealizados,
+        {cascade: true}
     )
     createdBy: User;
 
     @ManyToOne(
         () => Mov,
         (mov) => mov.bitacoras,
-        {onDelete: 'CASCADE'}
     )
     movType: Mov;
 }
