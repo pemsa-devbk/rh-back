@@ -476,17 +476,17 @@ const createCredencial = async(user: User) => {
     doc.setFontSize(9.36);
     doc.setTextColor(0, 0, 102);
     doc.text("FIRMA DEL REPRESENTANTE LEGAL", 223, 432.91, undefined, "center");
-    doc.text("PROTECCION ELECTRONICA MONTERREY S.A. DE C.V.", 223, 446.91, undefined, "center");
+    doc.text("PROTECCIÓN ELECTRÓNICA MONTERREY S.A. DE C.V.", 223, 446.91, undefined, "center");
     doc.text("33 PONIENTE 307 COL. CHULAVISTA C.P. 72420", 223, 458.91, undefined, "center");
     doc.text("PUEBLA, PUE. T:222 141 1230 / 222 243 3339 / 222 240 6378", 223, 470.91, undefined, "center");
     doc.text("www.pem-sa.com", 223, 484.91, undefined, "center");
 
-    doc.text("PERIMISO SSP FEDERAL: DGSP/303-16/3302", 223, 502.91, undefined, "center");
+    doc.text("PERMISO SSP FEDERAL: DGSP/303-16/3302", 223, 502.91, undefined, "center");
     doc.text("PERMISO SSP EDO. DE PUEBLA: SSP/SUBCOP/DGSP/506-23/460", 223, 516.91, undefined, "center");
     doc.text("REPSE: STPS/UTD/DGIFT/AR10508/2021", 223, 527.91, undefined, "center");
     doc.text("Registro Patronal: E061123710", 223, 539.91, undefined, "center");
-    doc.text("ESTE DOCUMENTO ES OFICIAL DE PROTECCION ELETRONICA MONTERREY S.A. DE C.V.", 223, 559.91, undefined, "center");
-    doc.text("AMPARA SERVICIOS Y RESPONABILIDADES. ES PERSONAL E INTRANSFERIBLE", 223, 572.91, undefined, "center");
+    doc.text("ESTE DOCUMENTO ES OFICIAL DE PROTECCIÓN ELETRÓNICA MONTERREY S.A. DE C.V.", 223, 559.91, undefined, "center");
+    doc.text("AMPARA SERVICIOS Y RESPONSABILIDADES. ES PERSONAL E INTRANSFERIBLE", 223, 572.91, undefined, "center");
 
 
     doc.save(`${pathFile}/${user.id}/credencial.pdf`);
