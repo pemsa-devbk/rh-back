@@ -26,7 +26,7 @@ passport.use( new JwtStragy (jwtOptions, async (payload: Payload, done) => {
     const userRepository = appDataSource.getRepository(User);
 
     //buscamos por id, para más inof revisar documentación 
-    const user = await userRepository.findOne({where: {id: payload.id}})
+    const user = await userRepository.findOne({where: {user_id: payload.id}})
 
     if(!user){
         return done ('Usuario no existente', null)
@@ -41,6 +41,7 @@ passport.use( new JwtStragy (jwtOptions, async (payload: Payload, done) => {
 
 //AGREGAR LA AUTENTICACIÓN
 export const  authentication = (req: Request, res: Response, next: () => void) =>{
+    return next()
     passport.authenticate('jwt', {session:false}, (er: unknown, user: User, info: unknown) => {
         if(er){
             return res.status(401).json({

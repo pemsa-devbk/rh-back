@@ -1,10 +1,31 @@
 import { DataSource } from "typeorm";
 import { enviroment } from "../config/enviroment";
 import { User } from "./entities/user.entity";
-import { Mov } from "./entities/movs.entity";
-import { Bitacora } from "./entities/bita.entity";
+import { Binnacle } from "./entities/binnacle.entity";
 import { Contact } from "./entities/contact.entity";
+import { HolidaysConfig } from "./entities/holidays_config";
+import { HolidayRequest } from "./entities/holidays_request";
+import { HolidayDays } from "./entities/holidays_days";
+import { SystemConfiguration } from "./entities/system_configuration";
+import { Office } from "./entities/office.entity";
+import { Area } from "./entities/area.entity";
+import { Position } from "./entities/position.entity";
+import { Signature } from "./entities/signature.entity";
+import { Enterprise } from "./entities/enterprise.entity";
+import { Course } from "./entities/course.entity";
+import { CourseUser } from "./entities/course_user.entity";
+import { Address } from "./entities/address.entity";
+import { BankingDetails } from "./entities/banking_details.entity";
+import { Colony } from "./entities/colony.entity";
+import { Contract } from "./entities/contract.entity";
+import { Department } from "./entities/department.entity";
+import { EnterpriseInformation } from "./entities/enterprise_information.entity";
+import { License } from "./entities/license.entity";
+import { MedicalData } from "./entities/medical_data.entity";
+import { Municipality } from "./entities/municipaly.entity";
+import { Settlement } from "./entities/settlement.entity";
 import { State } from "./entities/state.entity";
+import { Bank } from "./entities/bank.entity";
 
 export const appDataSource = new DataSource ({
     type:'mssql',
@@ -13,9 +34,9 @@ export const appDataSource = new DataSource ({
     username: enviroment.USERNAME,
     password: enviroment.PASSWORD,
     database: enviroment.DATABASE,
-    // synchronize: true, 
+    synchronize: true, 
     // logging: true,
-    entities: [User, Mov, Bitacora, Contact, State],
+    entities: [Address, Area, Bank, BankingDetails, Binnacle, Colony, Contact, Contract, CourseUser, Course, Department, EnterpriseInformation, Enterprise, HolidaysConfig, HolidayDays, HolidayRequest, License, MedicalData, Municipality, Office, Position, Settlement, Signature, State, SystemConfiguration, User],
     extra: {
         trustServerCertificate:true
     }

@@ -1,15 +1,27 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, UpdateDateColumn } from "typeorm";
-import { Bitacora } from "./bita.entity";
-import { State } from "./state.entity";
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, UpdateDateColumn } from "typeorm";
+import { Binnacle } from "./binnacle.entity";
 import { Contact } from "./contact.entity";
+import { HolidayRequest } from "./holidays_request";
+import { SystemConfiguration } from "./system_configuration";
+import { Area } from "./area.entity";
+import { Position } from './position.entity';
+import { CourseUser } from "./course_user.entity";
+import { Department } from "./department.entity";
+import { Address } from "./address.entity";
+import { EnterpriseInformation } from "./enterprise_information.entity";
+import { MedicalData } from "./medical_data.entity";
+import { License } from "./license.entity";
+import { Contract } from "./contract.entity";
+import { BankingDetails } from "./banking_details.entity";
 
-@Entity ('users')
-export class User{
+@Entity({ name: 'users' })
+export class User {
     @Column({
-        primary:true,
-        length: 5
+        primary: true,
+        length: 5,
+        type: 'varchar'
     })
-    id: string;
+    user_id: string;
 
     @Column({
         type: 'varchar',
@@ -18,139 +30,206 @@ export class User{
     name: string;
 
     @Column({
-        type:'varchar'
-    })
-    position:string;
-    
-    @Column({
-        type:'varchar',
-        length:15,
-        nullable:true
-    })
-    phone:string;
-
-    @Column({
         type: 'char',
         length: 1,
     })
     gender: string;
 
     @Column({
-        type:'date',
+        type: 'date',
     })
     birthdate: Date;
 
     @Column({
-        type:'varchar',
-        unique:true,
-        length:18
+        type: 'varchar',
+        unique: true,
+        length: 18
     })
-    curp:string;
+    curp: string;
 
     @Column({
-        type:'text',
-        nullable:true
+        type: 'varchar',
+        unique: true,
+        length: 13
     })
-    address:string;
+    rfc: string;
 
     @Column({
-        type:'varchar',
-        nullable:true,
-        length:3
-    })
-    bloodType:string;
-
-
-    @Column({
-        type:'text',
-        nullable:true
-    })
-    allergies:string;
-
-
-    @Column({
-        type:'varchar',
-        length:11,
-        nullable:true
-    })
-    nss:string
-
-    @Column({
-        type:'varchar',
-        nullable:true
-    })
-    cuip:string
-
-    @Column({
+        type: 'varchar',
         nullable: true
     })
-    urlPhoto: string;
+    cuip: string
 
     @Column({
         select: false
     })
     password: string;
 
+    // TODO: Verificar los niveles de rol
     @Column()
-    rol:string;
+    rol: string;
 
     @Column({
-        default: true
+        default: 1
     })
-    status:boolean;
+    status: number;
+
+    @Column({
+        type: 'tinyint',
+        default: 0
+    })
+    num_children: number;
+
+    @Column({
+        type: 'smallint',
+        default: 0
+    })
+    vacation_days: number;
+
+    @Column({ nullable: true, type: 'varchar', length: 5 })
+    user_chief_id: string;
+
+    @Column({ type: 'bit', default: false })
+    have_uniform: boolean;
+
+    @Column({ type: 'varchar', nullable: true, length: 10})
+    num_infonavit: string;
+
+    @Column({type: 'tinyint'})
+    marital_status: number;
+
+    @Column({type: 'varchar', length: 200})
+    place_registration: string;
+
+    @Column({type: 'int'})
+    salary: number;
+
+    @Column({type: 'char', length: 5})
+    cp_csf: string; // Codigo postal de constancia de situacion fiscal 
+
+    @Column({
+        type: 'date',
+    })
+    date_entry: Date;
 
     @UpdateDateColumn()
-    upDateAt: Date;
-
-    @CreateDateColumn({
-        // transformer: {
-        //     from: (value) => value,
-        //     to: (value) => value 
-        // },
-    })
-    createdAt: Date;
+    update_at: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date;
+    deleted_at: Date;
 
-    
-    //Relaciones:
-    @OneToMany(
-        () => Bitacora,
-        (bitacora) => bitacora.userModificado
+    @Column()
+    position_id: number;
+
+    // * Relaciones:
+    @OneToOne(
+        () => Address,
+        (address) => address.user
     )
-    misMovs: Bitacora[];
+    address: Address;
+
+    @OneToOne(
+        () => EnterpriseInformation,
+        (enterpriseInformation) => enterpriseInformation.user
+    )
+    enterpriseInformation: EnterpriseInformation;
+
+    @OneToOne(
+        () => MedicalData,
+        (medicalData) => medicalData.user
+    )
+    medicalData: MedicalData;
+
+    @OneToOne(
+        () => License,
+        (license) => license.user
+    )
+    license: License;
+
+    @OneToOne(
+        () => BankingDetails,
+        (bankingDetails) => bankingDetails.user
+    )
+    bankingDetails: BankingDetails;
 
     @OneToMany(
-        () => Bitacora,
-        (bitacora) => bitacora.createdBy,
-        {onDelete: 'CASCADE'}
+        () => Contract,
+        (contract) => contract.user
     )
-    movRealizados: Bitacora[];
-    
-    //
-    @ManyToOne(
-        () => State,
-        (state) => state.users
+    contracts: Contract[];
+
+    // * Bitacora de movimientos del usuario
+    @OneToMany(
+        () => Binnacle,
+        (binnacle) => binnacle.modifiedUser,
     )
-    region: State;
+    binnacle: Binnacle[];
+
+    // * Bitacora de los movimientos que ha hecho el usuario
+    @OneToMany(
+        () => Binnacle,
+        (bitacora) => bitacora.modifierUser,
+    )
+    history: Binnacle[];
 
     @OneToMany(
         () => User,
-        (user) => user.userChief
+        (user) => user.userChief,
     )
     usersInCharge: User[];
 
     @ManyToOne(
         () => User,
-        (user) => user.usersInCharge
+        (user) => user.usersInCharge,
+        // { onDelete: 'SET NULL' }
     )
+    @JoinColumn({ name: 'user_chief_id' })
     userChief: User;
 
     @OneToMany(
         () => Contact,
-        (contact) => contact.user
+        (contact) => contact.user,
     )
     contacts: Contact[];
+
+    @OneToMany(
+        () => HolidayRequest,
+        (holidays) => holidays.user
+    )
+    holidays: HolidayRequest[];
+
+    @OneToMany(
+        () => SystemConfiguration,
+        (system) => system.user
+    )
+    specialConfig: SystemConfiguration[];
+
+    @OneToMany(
+        () => Area,
+        (area) => area.responsibleUser
+    )
+    areasInCharge: Area[];
+
+    @OneToMany(
+        () => Department,
+        (department) => department.responsibleUser
+    )
+    departmentsInCharge: Department[];
+
+    @OneToMany(
+        () => CourseUser,
+        (courseUser) => courseUser.user
+    )
+    courseUsers: CourseUser[];
+
+
+    @ManyToOne(
+        () => Position,
+        (position) => position.users,
+        { onDelete: 'NO ACTION' }
+    )
+    @JoinColumn({ name: 'position_id' })
+    position: Position;
+
 }
 

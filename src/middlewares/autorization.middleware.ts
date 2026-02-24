@@ -9,7 +9,7 @@ export const autorizationCheck = (roles: string[]) =>{
         }
         
         return res.status(401).json({
-            error: `Este usuario: ${req.user.id} no tiene los permisos necesarios`
+            error: `Este usuario: ${req.user.user_id} no tiene los permisos necesarios`
         })
     }
 }

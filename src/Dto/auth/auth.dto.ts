@@ -6,7 +6,7 @@ export class AuthDTO {
         message:'Debe ser texto'
     })
     @Length(5,5,{message:'numero de empleado no valido'})
-    id: string; //Num de empleado
+    user_id: string; //Num de empleado
 
     @IsString({
         message:'La contraseña es obligatoria'

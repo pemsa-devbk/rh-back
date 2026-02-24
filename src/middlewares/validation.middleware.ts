@@ -13,14 +13,15 @@ export const validationMiddleware = <T extends object> (dtoClass: new() => T) =>
         
 
         //crear const error para la validacion
-        const errors = validateSync(data, {whitelist: true });
-
+        const errors = validateSync(data, {whitelist: true, forbidNonWhitelisted: true });
+        
         //buscamos que el error sea más de 0
         if(errors.length > 0){
             return res.status(400).json({
                 errors: getErrors(errors)[0]
             })
         }
+        req.body = data;
         return next();
     }
 }

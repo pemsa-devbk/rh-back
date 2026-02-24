@@ -5,5 +5,9 @@ combined.log
 
 /src/certs
 /public/img
+/public/data_bank.csv
+/public/data.csv
 
-docs/
+uploads/
+
+README2.MD

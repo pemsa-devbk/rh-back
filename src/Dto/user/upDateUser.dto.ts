@@ -1,95 +1,86 @@
 import { IsString, IsOptional, Length, IsEmail, IsEnum, IsInt, IsDateString, IsIn } from 'class-validator'
 import { validRoles } from '../../types/enums/roles';
+import { Expose } from 'class-transformer';
 
 export class upDateUserDTO {
-
-    @IsOptional()
-    @IsString({
-        message: 'Ingrese el nombre completo'
-    })
-    @Length(10, 100)
-    name?: string;
-
-    @IsOptional()
-    @IsString({
-        message:'Indique el puesto de este usuario'
-    })
-    position?:string;
-
-    @IsOptional()
-    @Length(10,15)
-    phone?:string;
-
-    @IsOptional()
-    @IsIn(['M', 'F'])
-    gender: string;
-
-    @IsOptional()
-    @IsDateString({strict: true},{
-        message:'Ingrese fecha de nacimiento por número y separados por - '
-    })
-    birthdate?:Date;
-
-    @IsOptional()
-    @Length(18,18)
-    curp?:string;
-
-    @IsOptional()
-    @IsString({
-        message:'Ingrese la dirección del usuario '
-    })
-    address?:string;
-
-    @IsOptional()
-    @Length(2,3)
-    bloodType?:string;
-
-    @IsOptional()
-    @IsString({
-        message:'Ingrese que tipo de alergias padece este usuario'
-    })
-    allergies?:string;
-
-    @IsOptional()
-    @Length(11,11)
-    nss?:string;
-    
-    @IsOptional()
-    @IsString()
-    cuip?:string;
-
-    @IsOptional()
-    @IsInt({
-        message: 'El ID del estado debe ser un número'
-    })
-    idState?: number;
-
+    // @Expose()
     // @IsOptional()
-    // @IsBoolean()
-    // status: boolean; //Activo/Inactivo
+    // @IsString({
+    //     message: 'Ingrese el nombre completo'
+    // })
+    // @Length(10, 100)
+    // name?: string;
 
-    @IsOptional({
-        message: 'Debe ingresar un correo válido'
-    })
-    @IsEmail()
-    email?: string; //Mandarlo a un nuevo Dto de Contacto
+    // @Expose()
+    // @IsOptional()
+    // @Length(10, 15)
+    // phone?: string;
 
-    @IsOptional()
-    @IsString({
-        message: 'Es necesaria la contraseña'
-    })
-    password?: string;//Lo envía el Admin
+    // @Expose()
+    // @IsOptional()
+    // @IsIn(['M', 'F'])
+    // gender: string;
 
-    @IsOptional()
-    @IsEnum(validRoles, {
-        message: 'Debe ser un rol'
-    })
-    rol: string = validRoles.USER;
+    // @Expose()
+    // @IsOptional()
+    // @IsDateString({ strict: true }, {
+    //     message: 'Ingrese fecha de nacimiento por número y separados por - '
+    // })
+    // birthdate?: Date;
 
-    @IsOptional()
-    @IsString({
-        message: 'Debe ser texto'
-    })
-    idChief?: string;
+    // @Expose()
+    // @IsOptional()
+    // @Length(18, 18)
+    // curp?: string;
+
+    // @Expose()
+    // @IsOptional()
+    // @IsString({
+    //     message: 'Ingrese la dirección del usuario '
+    // })
+    // address?: string;
+
+    // @Expose()
+    // @IsOptional()
+    // @Length(2, 3)
+    // blood_type?: string;
+
+    // @Expose()
+    // @IsOptional()
+    // @IsString({
+    //     message: 'Ingrese que tipo de alergias padece este usuario'
+    // })
+    // allergies?: string;
+
+    // @Expose()
+    // @IsOptional()
+    // @Length(11, 11)
+    // nss?: string;
+
+    // @Expose()
+    // @IsOptional()
+    // @IsString()
+    // cuip?: string;
+
+    // @Expose()
+    // @IsOptional({
+    //     message: 'Debe ingresar un correo válido'
+    // })
+    // @IsEmail()
+    // email?: string; //Mandarlo a un nuevo Dto de Contacto
+
+    // @Expose()
+    // @IsOptional()
+    // @IsEnum(validRoles, {
+    //     message: 'Debe ser un rol'
+    // })
+    // rol: string = validRoles.USER;
+
+    // @Expose()
+    // @IsOptional()
+    // @IsString({
+    //     message: 'Debe ser texto'
+    // })
+    // user_chief_id?: string;
 
 }

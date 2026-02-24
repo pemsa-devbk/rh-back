@@ -8,5 +8,6 @@ export const enviroment = {
     USERNAME: process.env.DB_USERNAME,
     PASSWORD: process.env.PASSWORD,
     DATABASE: process.env.DATABASE,
-    API_PATH: process.env.API_PATH
+    API_PATH: process.env.API_PATH,
+    RESEND_API_KEY: process.env.RESEND_API_KEY
 }

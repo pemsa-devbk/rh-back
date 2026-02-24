@@ -1,20 +1,19 @@
-import { Column, Entity, OneToMany } from "typeorm";
-import { User } from "./user.entity";
+import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Municipality } from "./municipaly.entity";
 
-@Entity()
-export class State{
-    @Column({
-        primary: true
-    })
-    id: number;
+@Entity({name: 'states'})
+export class State {
+    
+    @PrimaryColumn({type: 'char', length: 2})
+    code_state: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 100})
     name: string;
 
-    //Relaciones que tiene con usuario:
+    // * Relaciones
     @OneToMany(
-        () => User,
-        (user) =>user.region
+        () => Municipality,
+        (municipality) => municipality.state
     )
-    users: User[]
+    municipalities: Municipality[];
 }

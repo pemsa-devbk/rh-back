@@ -1,27 +1,32 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
-@Entity()
-export class Contact{
+@Entity({ name: 'contacts' })
+export class Contact {
     @PrimaryGeneratedColumn('increment')
-    id:number;
+    contact_id: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 100 })
     contact: string;
 
-    @Column()
-    type:number;
-
+    // ? Definir tipos (1. correo, 2. telefono)
     @Column({
-        nullable: true
+        type: "tinyint"
     })
+    type: number;
+
+    @Column({ nullable: true, type: 'varchar', length: 200 })
     notes: string;
+
+    @Column({ type: 'varchar', length: 5 })
+    user_id: string;
 
     //Relaciones con el usuario:
     @ManyToOne(
         () => User,
-        (user) => user.contacts
+        (user) => user.contacts,
+        { onDelete: 'CASCADE' }
     )
+    @JoinColumn({ name: 'user_id' })
     user: User;
-    
 }

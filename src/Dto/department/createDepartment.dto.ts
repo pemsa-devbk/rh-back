@@ -1,0 +1,11 @@
+import { IsOptional, IsString, Length } from "class-validator";
+
+export class CreateDepartmentDto{
+    @IsString()
+    name: string;
+
+    @IsOptional()
+    @IsString({message: 'El usuario responsable debe ser de tipo string'})
+    @Length(5, 5, {message: 'El codigo de usuario responsable debe tener 5 digitos'})
+    responsible_user_id?: string;
+}

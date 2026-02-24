@@ -1,0 +1,6 @@
+export enum SystemConfig {
+    RECURSO_HUMANOS = 'RH',
+    GERENTE_ADMINISTRATIVO = 'GA',
+    GERENTE_GENERAL = 'GG',
+    REPRESENTANTE_LEGAL = 'RL'
+}

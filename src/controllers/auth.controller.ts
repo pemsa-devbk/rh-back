@@ -14,35 +14,27 @@ export const authLogin = async (req: Request, res: Response) => {
     const userRepository = appDataSource.getRepository(User);
 
     const user = await userRepository.findOne({ 
-        where: {id: login.id}, 
+        where: {user_id: login.user_id}, 
         select:{
-            id: true,
+            user_id: true,
             name: true,
             rol: true,
             password: true,
-            createdAt: true,
-            //se agregaron los sig...
             birthdate:true,
-            urlPhoto:true,
             status:true,
-            upDateAt:true,
-            deletedAt:true,
-            
-        },
-        relations: {
-            region: true
+            update_at:true,
+            deleted_at:true,
         }
     });
     
     if(user && bcrypt.compareSync(login.password, user.password)){
         delete user.password;
-        const {region, ...userInfo} = user;
+        const userInfo = user;
         return res.json({
             user: {
                 ...userInfo,
-                region: region.name
             },
-            token: generateToken(user.id)
+            token: generateToken(user.user_id)
         })
     }
     res.status(401).json ({
@@ -56,7 +48,7 @@ export const checkLogin = (req: Request, res: Response) => {
         user: {
             ...req.user,
         },
-        token: generateToken(req.user.id)
+        token: generateToken(req.user.user_id)
     })
 }
 

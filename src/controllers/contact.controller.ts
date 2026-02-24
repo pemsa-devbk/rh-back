@@ -1,138 +1,56 @@
-// import { plainToInstance } from "class-transformer";
-import { Request, Response } from "express";
-import { appDataSource } from "../db/dataBase";
-import { User } from "../db/entities/user.entity";
-import { Contact } from "../db/entities/contact.entity";
-import { CreateContactDTO } from "../Dto/contact/createContact.dto";
+import { NextFunction, Request, Response } from "express";
 import { plainToInstance } from "class-transformer";
-import { validRoles } from "../types/enums/roles";
-import { UpDateContactDTO } from "../Dto/contact/upDateContact.dto";
-// import { CreateContactDTO } from "../Dto/contact/createContact.dto";
-// import { appDataSource } from "../db/dataBase";
-// import { Contact } from "../db/entities/contact.entity";
+import { PaginationDto } from "../Dto/pagination.dto";
+import { ContactService } from "../services/contact.service";
 
-export const createContact = async (req: Request, res: Response) => {
-    //logica de negocio: Buscamos si existe user al que se le va a signar contact
-    
-    const createContact = plainToInstance(CreateContactDTO, req.body);
-    const userRepository = appDataSource.getRepository(User);
-    const {id} = req.params;
+export class ContactController {
+    constructor(
+        private readonly contactService = new ContactService()
+    ) { }
 
-    const contactRepository = appDataSource.getRepository(Contact);
-    const userFind = await userRepository.findOne({where:{id:id}});
-    if(!userFind){
-        return res.status(401).json({
-            error: `No hay registro del usuario: ${userFind.name}`
-        })
-    }
-    
-    //creamos el contacto:
-    const contact = contactRepository.create({...createContact, user:userFind})
-    await contactRepository.save(contact);
-    
-    //y mostramos al contacto
-    res.json({
-       contact
-    })
-}
-
-
-// TODO: Validar 
-//GET ALL CONTACTS USER-ID
-export const getAllContact = async (req: Request, res: Response) => {
-    //logica de negocio:
-    const contactRepository = appDataSource.getRepository(Contact);
-    //const contactRepository = appDataSource.getRepository(Contact);
-
-    //Para que el usuario no vea los contactos de otros, solo el suyo
-
-    //Buscamos al usuario:
-    const contactFind = await contactRepository.find({
-
-        
-    });
-    
-    //se muestra el contacto por usuario:
-    res.json({
-        contactFind
-    })
-}
-
-
-
-
-
-// TODO
-export const getOneContact = async (req: Request, res: Response) => {
-    //logica de negocio:
-    const contactRepository = appDataSource.getRepository(Contact);
-    const {id} = req.params;
-    //const contactRepository = appDataSource.getRepository(Contact);
-
-    //Para que el usuario no vea los contactos de otros, solo el suyo
-    if(req.user.rol == validRoles.USER && req.user.id != id){
-        return res.status(401).json({
-            error: `No se tinen los permisos para esta acción`
-        })
+    public create = async (req: Request, res: Response, next: NextFunction) => {
+        const { user_id } = req.params;
+        const createContact = req.body;
+        try {
+            const contacts = await this.contactService.create(user_id, createContact);
+            res.json(
+                contacts
+            )
+        } catch (error) {
+            next(error);
+        }
     }
 
-    //Buscamos al usuario:
-    const contactFind = await contactRepository.findOne({where: {id:+id}});
-    if(!contactFind){
-        return res.status(401).json({
-            error: `No se ha encontrado el contacto`
-        })
+    public getByUser = async (req: Request, res: Response, next: NextFunction) => {
+        const { user_id } = req.params;
+        const paginationDto = plainToInstance(PaginationDto, req.query);
+        try {
+            const [contacts, total] = await this.contactService.getContactsByUser(user_id, paginationDto);
+            res.json({
+                data: contacts,
+                total
+            })
+        } catch (error) {
+            next(error);
+        }
     }
-    
-    //se muestra el contacto por usuario:
-    res.json({
-        contactFind
-    })
-}
-
-
-
-export const upDateContact = async (req: Request, res: Response) => {
-    //logica de negocio:
-    const contactUpDate = plainToInstance (UpDateContactDTO, req.body);
-    const contactRepository = appDataSource.getRepository(Contact);
-    const {id} = req.params;
-    
-
-    let contact = await contactRepository.findOne({where: {id: +id}})
-
-    if(!contact){
-        return res.status(401).json({
-            error: `No existe el contacto`
-        })
+    public update = async (req: Request, res: Response, next: NextFunction) => {
+        const { user_id, contact_id } = req.params;
+        const updateDto = req.body;
+        try {
+            const contact = await this.contactService.update(user_id, +contact_id, updateDto);
+            res.json(contact)
+        } catch (error) {
+            next(error);
+        }
     }
-    contact = await contactRepository.save({
-        ...contact,
-        ...contactUpDate
-    })
-
-    res.json({
-        contact
-    })
-}
-
-
-export const deleteContact = async (req: Request, res: Response) => {
-    //logica de negocio n.n
-    
-    const contactRepository = appDataSource.getRepository(Contact);
-    const {id} = req.params;
-
-    //buscamos el contacto y luego lo eliminamos n.n
-    const contactFind = await contactRepository.findOne({where:{id: +id}});
-    if(!contactFind){
-        return res.status(401).json({
-            error: `Contacto no existente`
-        })
+    public delete = async (req: Request, res: Response, next: NextFunction) => {
+        const { user_id, contact_id } = req.params;
+        try {
+            const contact = await this.contactService.delete(user_id, +contact_id);
+            res.json(contact)
+        } catch (error) {
+            next(error);
+        }
     }
-    
-    const contactDelete = await contactRepository.remove( contactFind )
-    res.json({
-        contactDelete
-    })
 }
