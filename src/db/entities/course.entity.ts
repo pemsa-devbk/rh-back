@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CourseUser } from './course_user.entity';
+import { CourseEmployee } from './course_employee.entity';
 
 @Entity({name: 'courses'})
 export class Course {
@@ -17,8 +17,8 @@ export class Course {
 
     // * Relaciones
     @OneToMany(
-        () => CourseUser,
-        (courseUsers) => courseUsers.course
+        () => CourseEmployee,
+        (courseEmployee) => courseEmployee.course
     )
-    courseUsers: CourseUser[];
+    courseUsers: CourseEmployee[];
 }

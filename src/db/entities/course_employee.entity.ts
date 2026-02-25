@@ -1,9 +1,9 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { Course } from "./course.entity";
-import { User } from "./user.entity";
+import { Employee } from "./employee";
 
-@Entity({name: 'course_users'})
-export class CourseUser{
+@Entity({name: 'course_employee'})
+export class CourseEmployee{
     // * Relaciones
     @PrimaryColumn()
     course_id: number;
@@ -23,10 +23,10 @@ export class CourseUser{
     course: Course;
 
     @ManyToOne(
-        () => User,
-        (user) => user,
+        () => Employee,
+        (employee) => employee,
         {onDelete: 'CASCADE'}
     )
     @JoinColumn({name: 'user_id'})
-    user: User;
+    employee: Employee;
 }

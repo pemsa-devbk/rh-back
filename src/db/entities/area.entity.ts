@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
 import { Position } from "./position.entity";
 import { Department } from "./department.entity";
+import { Employee } from "./employee";
 
 @Entity({name: 'areas'})
 export class Area {
@@ -29,12 +29,12 @@ export class Area {
     deparment: Department;
 
     @ManyToOne(
-        () => User,
-        (user) => user.areasInCharge,
+        () => Employee,
+        (employee) => employee.areasInCharge,
         { onDelete: 'SET NULL' }
     )
     @JoinColumn({ name: 'responsible_user_id' })
-    responsibleUser: User;
+    responsibleUser: Employee;
 
     @OneToMany(
         () => Position,

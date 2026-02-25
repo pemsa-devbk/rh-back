@@ -27,7 +27,7 @@ export class HolidayController {
         const { user_id } = req.params;
         const paginationDto = plainToInstance(PaginationDto, req.query);
         try {
-            const [holidays, total] = await this.holidayService.getHolidaybyUser(user_id, paginationDto);
+            const [holidays, total] = await this.holidayService.getHolidaybyEmployee(user_id, paginationDto);
             res.json({
                 data: holidays,
                 total

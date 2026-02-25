@@ -16,6 +16,7 @@ import { PaginationDto } from "../Dto/pagination.dto";
 import { StatusUser } from "../types/enums/status_user";
 import { Between, EntityManager } from "typeorm";
 import { Position } from "../db/entities/position.entity";
+import { Employee } from "../db/entities/employee";
 
 interface TextRich {
     text: string;
@@ -46,8 +47,8 @@ export class HolidayService {
         const { days, comment } = createDto;
         const today = dayjs.tz();
         return await this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
-            const user = await transactionalEntityManager.findOne(User, { where: { user_id }, relations: { position: true, userChief: true } });
-            if (!user) throw 'Usuario no encontrado';
+            const employee = await transactionalEntityManager.findOne(Employee, { where: { user_id }, relations: { position: true, boss: true, user: true } });
+            if (!employee) throw 'Usuario no encontrado';
             // * Validar que no existan vacaciones cruzadas
             const sortedDates = days.map(d => dayjs.tz(d)).sort((a, b) => a.valueOf() - b.valueOf());
             const maxDate = sortedDates[sortedDates.length - 1];
@@ -62,7 +63,7 @@ export class HolidayService {
             // if (today.isSame(maxDate.add(1, 'day'), 'date') || today.isAfter(maxDate.add(1, 'day'), 'date'))  // * Son vacaciones anteriores, es decir ya han pasado
             //     status = StatusHoliday.finalizada;
             // * Crear solicitud
-            await transactionalEntityManager.update(User, { user_id }, { vacation_days: (user.vacation_days - days.length) })
+            await transactionalEntityManager.update(Employee, { user_id }, { vacation_days: (employee.vacation_days - days.length) })
             const holydayRequest = transactionalEntityManager.create(HolidayRequest, {
                 user_id,
                 status,
@@ -77,20 +78,20 @@ export class HolidayService {
             })));
             await transactionalEntityManager.insert(HolidayDays, daysRequest);
             // * Bitacora
-            await transactionalEntityManager.insert(Binnacle, { modifier_user_id: modifier_id, modifiedUser: user, type: ValidStateMov.vacaciones });
+            await transactionalEntityManager.insert(Binnacle, { modifier_user_id: modifier_id, modifiedUser: employee, type: ValidStateMov.vacaciones });
 
             holydayRequest.days = daysRequest;
             // * Crear documento
-            await this.createDoc(transactionalEntityManager, holydayRequest, user);
+            await this.createDoc(transactionalEntityManager, holydayRequest, employee);
             const othersText = this.formatVacationDates(daysRequest);
             return {
-                message: `Solicitud de vacaciones creada para la(s) fecha(s) ${othersText.text} del empleado ${user.name}`,
+                message: `Solicitud de vacaciones creada para la(s) fecha(s) ${othersText.text} del empleado ${employee.user.name}`,
                 id: holydayRequest.request_holiday_id
             };
         })
     }
 
-    public async getHolidaybyUser(user_id: string, pagination: PaginationDto) {
+    public async getHolidaybyEmployee(user_id: string, pagination: PaginationDto) {
         const { skip, take } = pagination;
         const [data, total] = await this.holidayRequestRepository.createQueryBuilder('holiday')
             .leftJoin('holiday.days', 'days')
@@ -107,24 +108,24 @@ export class HolidayService {
 
     public async cancel(user_id: string, request_holiday_id: number) {
         return this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
-            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { user_id, request_holiday_id }, relations: { days: true, user: true } });
+            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { user_id, request_holiday_id }, relations: { days: true, employee: { user: true} } });
             if (!holiday) throw 'No hay registro de vacaciones';
             if (holiday.status === StatusHoliday.cancelado) throw "El registro ya ha sido cancelado";
-            await transactionalEntityManager.update(User, { user_id: holiday.user_id }, { vacation_days: (holiday.user.vacation_days + holiday.days.length), status: StatusUser.activo });
+            await transactionalEntityManager.update(Employee, { user_id: holiday.user_id }, { vacation_days: (holiday.employee.vacation_days + holiday.days.length), status: StatusUser.activo });
             await transactionalEntityManager.update(HolidayRequest, { request_holiday_id }, { status: StatusHoliday.cancelado });
             const othersText = this.formatVacationDates(holiday.days);
-            return `Se cancelo la solicitud de vacaciones del usuario ${holiday.user.name} para la(s) fecha(s) ${othersText.text}`;
+            return `Se cancelo la solicitud de vacaciones del usuario ${holiday.employee.user.name} para la(s) fecha(s) ${othersText.text}`;
         });
     }
 
     public async getFormatHoliday(user_id: string, request_holiday_id: number): Promise<[string, Buffer]> {
 
-        const holiday = await this.holidayRequestRepository.findOne({ where: { request_holiday_id, user_id }, relations: { user: true, days: true } })
+        const holiday = await this.holidayRequestRepository.findOne({ where: { request_holiday_id, user_id }, relations: { employee: {user: true}, days: true } })
         if (!holiday) throw 'No hay registro de vacaciones';
         const pathFile = join(__dirname, "..", "..", "uploads/users", user_id, "holidays", `${holiday.request_holiday_id}.pdf`);
         if (!existsSync(pathFile)) throw "Archivo no existente";
         const othersText = this.formatVacationDates(holiday.days);
-        return [`${holiday.user.name} ${othersText.text}.pdf`, readFileSync(pathFile)];
+        return [`${holiday.employee.user.name} ${othersText.text}.pdf`, readFileSync(pathFile)];
     }
 
     public async uploadFormat(user_id: string, request_holiday_id: number, file: Express.Multer.File) {
@@ -143,14 +144,14 @@ export class HolidayService {
         });
     }
 
-    private async createDoc(transactionalEntityManager: EntityManager, holiday: HolidayRequest, user: User) {
+    private async createDoc(transactionalEntityManager: EntityManager, holiday: HolidayRequest, employee: Employee) {
 
-        const system = await transactionalEntityManager.find(SystemConfiguration, { relations: { user: true } })
-        const position = await transactionalEntityManager.findOne(Position, { where: { position_id: user.position_id }, relations: { area: { responsibleUser: true } } });
+        const system = await transactionalEntityManager.find(SystemConfiguration, { relations: { employee: {user: true} } })
+        const position = await transactionalEntityManager.findOne(Position, { where: { position_id: employee.position_id }, relations: { area: { responsibleUser: {user: true} } } });
         // * Validaciones de existencia
         if (!position.area.responsibleUser) throw 'El area no cuenta con un responsable';
 
-        const path = join(__dirname, '../..', 'uploads/users', user.user_id, 'holidays');
+        const path = join(__dirname, '../..', 'uploads/users', employee.user_id, 'holidays');
         const dayCreated = dayjs.tz(holiday.created_at);
         const doc = new jsPDF({
             compress: true
@@ -166,7 +167,7 @@ export class HolidayService {
 
         doc.text(`PUEBLA, PUE A ${dayCreated.format('DD [de] MMMM [DEL] YYYY').toUpperCase()}.`, 200, 30, { align: 'right', maxWidth: 100 });
         doc.text("NOMBRE: ", 15, 65);
-        let intText = user.name.toUpperCase();
+        let intText = employee.user.name.toUpperCase();
         doc.setLineWidth(0.5);
         doc.text(intText, 36, 65);
         doc.line(36, 65 + 1.5, 36 + doc.getTextWidth(intText), 65 + 1.5);
@@ -193,7 +194,7 @@ export class HolidayService {
 
         this.drawRichText(doc, [
             { text: "DÍAS ACUMULADOS DE PERIODOS ANTERIORES: ", underline: false },
-            { text: user.vacation_days.toString(), underline: true, style: 'bold' }
+            { text: employee.vacation_days.toString(), underline: true, style: 'bold' }
         ], 15, 113, 160, 10);
 
         let auxiliarText = '';
@@ -218,11 +219,11 @@ export class HolidayService {
         ], 15, 120, 160, 10);
         this.drawRichText(doc, [
             { text: "TOTAL DE DÍAS PENDIENTES POR DISFRUTAR: ", underline: false },
-            { text: user.vacation_days.toString(), underline: true, style: 'bold' }
+            { text: employee.vacation_days.toString(), underline: true, style: 'bold' }
         ], 15, 127, 160, 10);
         this.drawRichText(doc, [
             { text: "SALDO DE DÍAS QUE QUEDAN POR GOZAR: ", underline: false },
-            { text: (user.vacation_days - holiday.days.length).toString(), underline: true, style: 'bold' }
+            { text: (employee.vacation_days - holiday.days.length).toString(), underline: true, style: 'bold' }
         ], 15, 134, 160, 10);
 
         this.drawRichText(doc, [
@@ -233,27 +234,27 @@ export class HolidayService {
         doc.setLineWidth(0.5);
         doc.text("SOLICITANTE", 52, 155, { align: 'center', maxWidth: 75 });
         doc.line(15, 170, 90, 170);
-        doc.text(user.name.toUpperCase(), 52, 175, { align: 'center', maxWidth: 75 });
+        doc.text(employee.user.name.toUpperCase(), 52, 175, { align: 'center', maxWidth: 75 });
 
         doc.text("JEFE INMEDIATO", 157, 155, { align: 'center', maxWidth: 75 });
         doc.line(120, 170, 195, 170);
-        doc.text(user.userChief.name.toUpperCase(), 157, 175, { align: 'center', maxWidth: 75 });
+        doc.text(employee.boss.user.name.toUpperCase(), 157, 175, { align: 'center', maxWidth: 75 });
 
         doc.text("RECURSO HUMANOS", 52, 190, { align: 'center', maxWidth: 75 });
         doc.line(15, 205, 90, 205);
-        doc.text(system.find(us => us.key == 'RH').user.name.toUpperCase(), 52, 210, { align: 'center', maxWidth: 75 });
+        doc.text(system.find(us => us.key == 'RH').employee.user.name.toUpperCase(), 52, 210, { align: 'center', maxWidth: 75 });
 
         doc.text("GERENTE DE ÁREA", 157, 190, { align: 'center', maxWidth: 75 });
         doc.line(120, 205, 195, 205);
-        doc.text(position.area.responsibleUser.name.toUpperCase(), 157, 210, { align: 'center', maxWidth: 75 });
+        doc.text(position.area.responsibleUser.user.name.toUpperCase(), 157, 210, { align: 'center', maxWidth: 75 });
 
         doc.text("GERENTE ADMINISTRATIVO", 52, 225, { align: 'center', maxWidth: 75 });
         doc.line(15, 240, 90, 240);
-        doc.text(system.find(us => us.key == 'GA').user.name.toUpperCase(), 52, 245, { align: 'center', maxWidth: 75 });
+        doc.text(system.find(us => us.key == 'GA').employee.user.name.toUpperCase(), 52, 245, { align: 'center', maxWidth: 75 });
 
         doc.text("GERENTE DE GENERAL", 157, 225, { align: 'center', maxWidth: 75 });
         doc.line(120, 240, 195, 240);
-        doc.text(system.find(us => us.key == 'GG').user.name.toUpperCase(), 157, 245, { align: 'center', maxWidth: 75 });
+        doc.text(system.find(us => us.key == 'GG').employee.user.name.toUpperCase(), 157, 245, { align: 'center', maxWidth: 75 });
 
         return doc.save(`${path}/${holiday.request_holiday_id}.pdf`);
     }

@@ -38,15 +38,15 @@ export const seedUser = async (req: Request, res: Response) => {
         // await queryRunner.manager.save(statesToCreated);
 
         // En caso de no encontrar un usuario entonces se crea el usuario:
-        const user = userRepository.create({
-            ...seedUser,
-            //instalar el bcrypt y sus types para poder encriptar el password:
-            password: bcrypt.hashSync('1234', 10),
-            //añadir el archivo de los roles para el manejo de ellos
-            rol: validRoles.SUPER_USER,
+        // const user = userRepository.create({
+        //     ...seedUser,
+        //     //instalar el bcrypt y sus types para poder encriptar el password:
+        //     password: bcrypt.hashSync('1234', 10),
+        //     //añadir el archivo de los roles para el manejo de ellos
+        //     rol: validRoles.SUPER_USER,
 
-        })
-        await queryRunner.manager.save(user)
+        // })
+        // await queryRunner.manager.save(user)
 
         // Se crean todos los estado en la DB
         await queryRunner.commitTransaction();

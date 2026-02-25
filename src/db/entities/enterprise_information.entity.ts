@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
+import { Employee } from "./employee";
 
 @Entity({ name: 'enterprise_information' })
 export class EnterpriseInformation {
@@ -23,9 +23,9 @@ export class EnterpriseInformation {
 
     // * Relaciones
     @OneToOne(
-        () => User,
-        (user) => user.enterpriseInformation
+        () => Employee,
+        (employee) => employee.enterpriseInformation
     )
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    employee: Employee;
 }

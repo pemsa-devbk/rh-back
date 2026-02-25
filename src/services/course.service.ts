@@ -1,6 +1,6 @@
 import { appDataSource } from "../db/dataBase";
 import { Course } from "../db/entities/course.entity";
-import { CourseUser } from "../db/entities/course_user.entity";
+import { CourseEmployee } from "../db/entities/course_employee.entity";
 import { AssignUsersToCourseDTO } from "../Dto/course/assignUsersToCoruse.dto";
 import { CreateCourseDTO } from "../Dto/course/createCourse.dto";
 import { UpdateCourseDTO } from "../Dto/course/updateCourse.dto";
@@ -14,7 +14,7 @@ export class CourseService {
 
     constructor(
         private readonly courseRepository = appDataSource.getRepository(Course),
-        private readonly courseUserRepository = appDataSource.getRepository(CourseUser),
+        private readonly courseUserRepository = appDataSource.getRepository(CourseEmployee),
     ) { }
 
     public create(courseDTO: CreateCourseDTO): Promise<Course> {
@@ -29,7 +29,7 @@ export class CourseService {
                     course_id: course.course_id,
                 }));
 
-                await transactionalEntityManager.insert(CourseUser, courseUsers);
+                await transactionalEntityManager.insert(CourseEmployee, courseUsers);
             }
 
             return course;
@@ -79,11 +79,11 @@ export class CourseService {
 
     public async uploadProof(course_id: number, user_id: string, file: Express.Multer.File) {
         return this.courseUserRepository.manager.transaction(async (transactionalEntityManager) => {
-            const userCourse = await transactionalEntityManager.findOneBy(CourseUser, { course_id, user_id });
+            const userCourse = await transactionalEntityManager.findOneBy(CourseEmployee, { course_id, user_id });
             if (!userCourse) throw 'No existe el registro solicitado';
             const userDir = join(__dirname, "..", "..", 'uploads/users', user_id, 'courses');
             if (!existsSync(userDir)) mkdirSync(userDir, { recursive: true });
-            if (!userCourse.have_proof) await transactionalEntityManager.update(CourseUser, { course_id, user_id }, { have_proof: true });
+            if (!userCourse.have_proof) await transactionalEntityManager.update(CourseEmployee, { course_id, user_id }, { have_proof: true });
             this.deleteFile(userDir, `${user_id}_${course_id}`);
             const ext = this.validateExt(file.originalname);
             const filepath = join(userDir, `${user_id}_${course_id}.${ext}`);

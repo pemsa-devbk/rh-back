@@ -1,11 +1,11 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Employee } from "./employee";
 
 @Entity({ name: 'contracts' })
 export class Contract {
     @PrimaryGeneratedColumn('increment')
     contract_id: number;
-    // TODO posible enum
+    
     @Column({ type: 'tinyint'})
     type: number;
 
@@ -20,10 +20,10 @@ export class Contract {
 
     // * Relaciones
     @ManyToOne(
-        () => User,
-        (user) => user.contracts,
+        () => Employee,
+        (employee) => employee.contracts,
         { onDelete: 'CASCADE' }
     )
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    employee: Employee;
 }

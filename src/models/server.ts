@@ -24,6 +24,7 @@ import { CourseRoute } from '../routes/course.route';
 import { StateRoute } from '../routes/state.route';
 import { MunicipalityRoute } from '../routes/municipality.route';
 import { ColonyRoute } from '../routes/colony.route';
+import { BankRoute } from '../routes/bank.route';
 
 export class Server {
     private app: Application;
@@ -87,20 +88,22 @@ export class Server {
         this.app.use(municipalityRoute.router);
         const colonyRoute = new ColonyRoute();
         this.app.use(colonyRoute.router);
+        const bankRoute = new BankRoute();
+        this.app.use( bankRoute.router ); 
 
         // TODO: Revisar hasta tener datos
         this.app.use('/bitrhDay', async (req, res) => {
             const bb = new BirthdayService();
             const userService = new UserService();
-            const users = await userService.userRepository.find({ relations: { position: true }, where: { rol: Not('super-user') } });
-            console.log(users);
+            // const users = await userService.userRepository.find({ relations: { position: true }, where: { rol: Not('super-user') } });
+            // console.log(users);
 
-            const rp = bb.template_2([...users, ...users]);
+            // const rp = bb.template_2([...users, ...users]);
 
 
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader('Content-Disposition', `inline; filename=doc.pdf`);
-            res.send(Buffer.from(rp))
+            // res.send(Buffer.from(rp))
         })
 
     }

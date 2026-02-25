@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
-import { User } from "./user.entity";
 import { Bank } from "./bank.entity";
+import { Employee } from "./employee";
 
 @Entity({ name: 'banking_details' })
 export class BankingDetails {
@@ -19,11 +19,11 @@ export class BankingDetails {
 
     // * Relaciones
     @OneToOne(
-        () => User,
-        (user) => user.bankingDetails
+        () => Employee,
+        (employee) => employee.bankingDetails
     )
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    employee: Employee;
 
     @ManyToOne(
         () => Bank,

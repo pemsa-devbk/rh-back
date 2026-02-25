@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
 import { HolidayDays } from "./holidays_days";
+import { Employee } from "./employee";
 
 @Entity({name: 'holidays_request'})
 export class HolidayRequest {
@@ -30,11 +30,11 @@ export class HolidayRequest {
     days: HolidayDays[];
 
     @ManyToOne(
-        () => User,
-        (user) => user.holidays,
+        () => Employee,
+        (employee) => employee.holidays,
         { onDelete: 'CASCADE' }
     )
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    employee: Employee;
 
 }

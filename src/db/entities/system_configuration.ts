@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
-import { User } from "./user.entity";
+import { Employee } from "./employee";
 
 @Entity({name: 'system_configuration'})
 export class SystemConfiguration{
@@ -13,10 +13,10 @@ export class SystemConfiguration{
     user_id: string | null;
 
     @ManyToOne(
-        () => User,
-        (user) => user.specialConfig,
+        () => Employee,
+        (employee) => employee.specialConfig,
         {nullable: true, onDelete: 'SET NULL'}
     )
     @JoinColumn({name: 'user_id'})
-    user: User;
+    employee: Employee;
 }

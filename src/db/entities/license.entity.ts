@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
+import { Employee } from "./employee";
 
 @Entity({ name: 'licenses' })
 export class License {
@@ -8,7 +8,7 @@ export class License {
 
     @Column({ type: 'date' })
     issue_date: Date;
-    // TODO : posible Relación con entidad de tipos de licencia
+    
     @Column({ type: 'tinyint'})
     type: number;
 
@@ -20,9 +20,9 @@ export class License {
 
     // * Relaciones
     @OneToOne(
-        () => User,
-        (user) => user.license
+        () => Employee,
+        (employee) => employee.license
     )
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    employee: Employee;
 }

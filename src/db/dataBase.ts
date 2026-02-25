@@ -13,7 +13,7 @@ import { Position } from "./entities/position.entity";
 import { Signature } from "./entities/signature.entity";
 import { Enterprise } from "./entities/enterprise.entity";
 import { Course } from "./entities/course.entity";
-import { CourseUser } from "./entities/course_user.entity";
+import { CourseEmployee } from "./entities/course_employee.entity";
 import { Address } from "./entities/address.entity";
 import { BankingDetails } from "./entities/banking_details.entity";
 import { Colony } from "./entities/colony.entity";
@@ -26,6 +26,8 @@ import { Municipality } from "./entities/municipaly.entity";
 import { Settlement } from "./entities/settlement.entity";
 import { State } from "./entities/state.entity";
 import { Bank } from "./entities/bank.entity";
+import { Rol } from "./entities/roles.entity";
+import { UserRole } from "./entities/user_role.entity";
 
 export const appDataSource = new DataSource ({
     type:'mssql',
@@ -36,7 +38,7 @@ export const appDataSource = new DataSource ({
     database: enviroment.DATABASE,
     synchronize: true, 
     // logging: true,
-    entities: [Address, Area, Bank, BankingDetails, Binnacle, Colony, Contact, Contract, CourseUser, Course, Department, EnterpriseInformation, Enterprise, HolidaysConfig, HolidayDays, HolidayRequest, License, MedicalData, Municipality, Office, Position, Settlement, Signature, State, SystemConfiguration, User],
+    entities: [Address, Area, Bank, BankingDetails, Binnacle, Colony, Contact, Contract, CourseEmployee, Course, Department, EnterpriseInformation, Enterprise, HolidaysConfig, HolidayDays, HolidayRequest, License, MedicalData, Municipality, Office, Position, Rol, Settlement, Signature, State, SystemConfiguration, User, UserRole],
     extra: {
         trustServerCertificate:true
     }

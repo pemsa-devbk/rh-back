@@ -15,13 +15,12 @@ export const authLogin = async (req: Request, res: Response) => {
 
     const user = await userRepository.findOne({ 
         where: {user_id: login.user_id}, 
+        relations: {userRoles: {rol: true}},
         select:{
             user_id: true,
             name: true,
-            rol: true,
             password: true,
-            birthdate:true,
-            status:true,
+            userRoles: {rol: {name: true}},
             update_at:true,
             deleted_at:true,
         }

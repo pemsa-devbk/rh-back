@@ -7,6 +7,7 @@ import { StatusHoliday } from "../types/enums/status_holidays";
 import { StatusUser } from "../types/enums/status_user";
 import { CronJob } from 'cron'
 import { EmailService } from "./Email.service";
+import { Employee } from "../db/entities/employee";
 
 
 export class TaskService {
@@ -88,7 +89,7 @@ export class TaskService {
             const daysToIncrement = holidayConfig.find(config => diff >= config.min_year && diff <= config.max_year).number_days || 0;
             return {
                 ...user,
-                vacationDays: user.vacation_days + daysToIncrement
+                // vacationDays: user.vacation_days + daysToIncrement
             }
         });
 
@@ -98,9 +99,9 @@ export class TaskService {
     public async checkHolidays() {
         const today = dayjs.tz();
 
-        const holidaysActive = await this.holidayRequestRepository.find({ where: [{ status: StatusHoliday.pendiente }, { status: StatusHoliday.curso }], relations: { days: true, user: true } });
+        const holidaysActive = await this.holidayRequestRepository.find({ where: [{ status: StatusHoliday.pendiente }, { status: StatusHoliday.curso }], relations: { days: true, employee: {user: true} } });
 
-        const users: Array<User> = [];
+        const users: Array<Employee> = [];
         const holidays: Array<HolidayRequest> = [];
         holidaysActive.forEach(holiday => {
             const sortedDates = holiday.days.map(d => dayjs.tz(d.date)).sort((a, b) => a.valueOf() - b.valueOf());
@@ -109,13 +110,13 @@ export class TaskService {
             if (today.isSame(minDate, 'date') || (today.isAfter(minDate, 'date') && today.isBefore(maxDate.add(1, 'day'), 'date'))) {
                 holiday.status = StatusHoliday.curso;
                 holidays.push(holiday);
-                holiday.user.status = StatusUser.vacaciones;
-                users.push(holiday.user);
+                holiday.employee.status = StatusUser.vacaciones;
+                users.push(holiday.employee);
             } else if (today.isSame(maxDate.add(1, 'day'), 'date') || today.isAfter(maxDate.add(1, 'day'), 'date')) {
                 holiday.status = StatusHoliday.finalizada;
                 holidays.push(holiday);
-                holiday.user.status = StatusUser.activo;
-                users.push(holiday.user);
+                holiday.employee.status = StatusUser.activo;
+                users.push(holiday.employee);
             }
         });
 
@@ -123,7 +124,7 @@ export class TaskService {
         await queryRunner.connect()
         await queryRunner.startTransaction()
         try {
-            await queryRunner.manager.save<User>(users);
+            await queryRunner.manager.save<Employee>(users);
             await queryRunner.manager.save<HolidayRequest>(holidays);
             await queryRunner.commitTransaction();
         } catch (error) {
