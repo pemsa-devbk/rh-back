@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length} from "class-validator";
+import { IsInt, IsOptional, IsString, Length} from "class-validator";
 
 export class CreateUserDto {
     @IsString({
@@ -13,8 +13,13 @@ export class CreateUserDto {
     @Length(10, 100, { message: 'El nombre de usuario debe tener al menos 10 catacteres' })
     name: string; 
 
+    @IsInt({message: 'El identificador de rol es obligatorio'})
+    role_id: number;
+
     @IsOptional()
     @IsString()
     password: string;
+
+
 
 }

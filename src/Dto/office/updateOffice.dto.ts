@@ -6,7 +6,7 @@ export class UpdateOfficeDto {
     @IsString()
     name?: string;
 
-    @IsOptional()
-    @IsString()
-    enterprise_id?: string;
+    // @IsOptional()
+    // @IsString()
+    // enterprise_id?: string;
 }

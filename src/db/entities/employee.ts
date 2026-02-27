@@ -151,7 +151,7 @@ export class Employee {
     @ManyToOne(
         () => Employee,
         (employee) => employee.employeesInCharge,
-        { onDelete: 'SET NULL' }
+        // { onDelete: 'SET NULL' }
     )
     @JoinColumn({ name: 'boss_id' })
     boss: Employee;

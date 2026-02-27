@@ -1,10 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 import { Employee } from "./employee";
 
 @Entity({ name: 'licenses' })
 export class License {
-    @PrimaryGeneratedColumn('increment')
-    license_id: number;
 
     @Column({ type: 'date' })
     issue_date: Date;
@@ -15,7 +13,7 @@ export class License {
     @Column({ type: 'date' })
     validity: Date;
 
-    @Column({ type: 'varchar', length: 5 })
+    @PrimaryColumn({ type: 'varchar', length: 5 })
     user_id: string;
 
     // * Relaciones

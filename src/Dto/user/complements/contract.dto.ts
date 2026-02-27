@@ -3,7 +3,7 @@ import { ContractType } from "../../../types/enums/contract";
 
 export class ContractDTO {
     @IsEnum(ContractType, {message: 'Solo se aceptan los valores Temporal e indeterminado'})
-    type: string;
+    type: number;
 
     @ValidateIf(o => o.type == ContractType.TEMPORARY)
     @IsDateString({ strict: true }, {

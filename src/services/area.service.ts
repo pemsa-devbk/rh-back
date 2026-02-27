@@ -74,7 +74,7 @@ export class AreaService {
     public async getByOffice(office_id: number, pagination: PaginationDto) {
         const { take, skip, search } = pagination;
         const [data, total] = await this.areaRepository.findAndCount({
-            where: search ? { name: Like(`%${search}%`), deparment: { office_id } } : { deparment: { office_id } },
+            where: search ? { name: Like(`%${search}%`), department: { office_id } } : { department: { office_id } },
             skip, take, select: { area_id: true }
         });
         const ids = data.map(dt => dt.area_id);
@@ -88,7 +88,7 @@ export class AreaService {
     public async getByEnterprice(enterprise_id: string, pagination: PaginationDto) {
         const { take, skip, search } = pagination;
         const [data, total] = await this.areaRepository.findAndCount({
-            where: search ? { name: Like(`%${search}%`), deparment: { office: { enterprise_id } } } : { deparment: { office: { enterprise_id } } },
+            where: search ? { name: Like(`%${search}%`), department: { office: { enterprise_id } } } : { department: { office: { enterprise_id } } },
             skip, take, select: { area_id: true }
         });
         const ids = data.map(dt => dt.area_id);
@@ -104,14 +104,15 @@ export class AreaService {
             .select(["area.area_id as area_id", "area.name as name", "area.responsible_user_id as responsible_user_id", "area.department_id as department_id"])
             // Incluir responsable de area
             .leftJoin('area.responsibleUser', 'responsibleUser')
-            .addSelect('responsibleUser.name', 'responsible_name')
+            .leftJoin('responsibleUser.user', 'user')
+            .addSelect('user.name', 'responsible_name')
             // Conteo de relaciones
             .leftJoin("area.positions", "position")
-            .leftJoin("position.users", "user")
+            .leftJoin("position.employees", "employee")
             .addSelect("COUNT(DISTINCT position.position_id)", "total_positions")
-            .addSelect("COUNT(DISTINCT user.user_id)", "total_users")
+            .addSelect("COUNT(DISTINCT employee.user_id)", "total_employees")
             //  Agrupación
-            .groupBy('area.area_id').addGroupBy('area.name').addGroupBy('area.responsible_user_id').addGroupBy('area.department_id').addGroupBy('responsibleUser.name')
+            .groupBy('area.area_id').addGroupBy('area.name').addGroupBy('area.responsible_user_id').addGroupBy('area.department_id').addGroupBy('user.name')
 
         switch (context) {
             case AreaQueryContext.FROM_GENERAL:

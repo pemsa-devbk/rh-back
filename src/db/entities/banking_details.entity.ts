@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Bank } from "./bank.entity";
 import { Employee } from "./employee";
 
@@ -14,7 +14,8 @@ export class BankingDetails {
     @PrimaryColumn({type: 'varchar', length: 5})
     user_id: string;
     
-    @PrimaryColumn()
+    @Index()
+    @Column()
     bank_id: number;
 
     // * Relaciones

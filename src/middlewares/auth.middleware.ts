@@ -8,8 +8,6 @@ import { Request, Response } from "express";
 import { StatusUser } from "../types/enums/status_user";
 
 
-
-
 const jwtOptions: StrategyOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 
@@ -41,21 +39,20 @@ passport.use( new JwtStragy (jwtOptions, async (payload: Payload, done) => {
 
 //AGREGAR LA AUTENTICACIÓN
 export const  authentication = (req: Request, res: Response, next: () => void) =>{
-    return next()
-    // passport.authenticate('jwt', {session:false}, (er: unknown, user: User, info: unknown) => {
-    //     if(er){
-    //         return res.status(401).json({
-    //             error: er
-    //         })
-    //     }
-    //     if(info){
-    //         return res.status(401).json({
-    //             error: `${info}`
-    //         })
-    //     }
-    //     req.user = user;
-    //     return next()
-    // })(req, res, next)
+    passport.authenticate('jwt', {session:false}, (er: unknown, user: User, info: unknown) => {
+        if(er){
+            return res.status(401).json({
+                error: er
+            })
+        }
+        if(info){
+            return res.status(401).json({
+                error: `${info}`
+            })
+        }
+        req.user = user;
+        return next()
+    })(req, res, next)
 }
 
 export default passport;

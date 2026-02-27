@@ -6,7 +6,6 @@ import { CreateUserDto } from "../Dto/user/createUser.dto";
 import { validRoles } from "../types/enums/roles";
 import { ValidStateMov } from "../types/enums/validMov";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, unlinkSync, writeFileSync } from 'fs';
-import { upDateUserDTO } from "../Dto/user/upDateUser.dto";
 import { StatusUser } from "../types/enums/status_user";
 import jsPDF from "jspdf";
 import base64 from 'base-64';

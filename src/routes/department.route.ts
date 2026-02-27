@@ -21,7 +21,7 @@ export class DepartmentRoute {
         this.router.get(`/offices/:office_id/departments/:department_id`, [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.controller.getOne);
         this.router.delete(`/offices/:office_id/departments/:department_id`, [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete);
         this.router.patch(`/offices/:office_id/departments/:department_id`, [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateDepartmentDto)], this.controller.update);
-        this.router.get(`/offices/:office_id/departments/departments`, [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.controller.getByOffice);
+        this.router.get(`/offices/:office_id/departments`, [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.controller.getByOffice);
 
         // * Rutas relacionadas (+1 nivel)
         this.router.get('/enterprises/:enterprise_id/departments', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.controller.getByEnterprise)

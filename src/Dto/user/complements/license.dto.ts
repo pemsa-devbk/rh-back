@@ -7,7 +7,7 @@ export class LicenseDTO {
     })
     issue_date: string;
 
-    @IsEnum(LicenseType, {message: 'Solo se aceptan los valores mercantirl y particular'})
+    @IsEnum(LicenseType, {message: 'Solo se aceptan los valores mercantil y particular'})
     type: LicenseType;
 
     @IsDateString({ strict: true }, {

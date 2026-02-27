@@ -66,7 +66,7 @@ export class PositionService {
         const ids = data.map(dt => dt.position_id);
         if (ids.length === 0) return [[], total];
 
-        const positions = await this.getQuery(PositionQueryContext.FROM_AREA)
+        const positions = await this.getQuery(PositionQueryContext.FROM_DEPARTMENT)
             .where('position.position_id IN (:...ids)', { ids })
             .getRawMany();
         return [positions, total]
@@ -75,7 +75,7 @@ export class PositionService {
     public async getByOffice(office_id: number, pagination: QueryRelationsDTO) {
         const { take, skip, search } = pagination;
         const [data, total] = await this.positionrepository.findAndCount({
-            where: search ? { name: Like(`%${search}%`), area: { deparment: {office_id} } } : { area: { deparment: {office_id} } },
+            where: search ? { name: Like(`%${search}%`), area: { department: {office_id} } } : { area: { department: {office_id} } },
             take, skip, select: { position_id: true }
         });
         const ids = data.map(dt => dt.position_id);
@@ -90,7 +90,7 @@ export class PositionService {
     public async getByEnterprise(enterprise_id: string, pagination: QueryRelationsDTO) {
         const { take, skip, search } = pagination;
         const [data, total] = await this.positionrepository.findAndCount({
-            where: search ? { name: Like(`%${search}%`), area: { deparment: {office: { enterprise_id}} } } : { area: { deparment: {office: { enterprise_id}} } },
+            where: search ? { name: Like(`%${search}%`), area: { department: {office: { enterprise_id}} } } : { area: { department: {office: { enterprise_id}} } },
             take, skip, select: { position_id: true }
         });
         const ids = data.map(dt => dt.position_id);
@@ -118,8 +118,8 @@ export class PositionService {
         const query = this.positionrepository.createQueryBuilder("position")
             .select(["position.position_id as position_id", "position.name as name", "position.area_id as area_id"])
             // conteo de relaciones
-            .leftJoin('position.users', 'user')
-            .addSelect("COUNT(DISTINCT user.user_id)", "total_users")
+            .leftJoin('position.employees', 'employee')
+            .addSelect("COUNT(DISTINCT employee.user_id)", "total_employees")
             .groupBy('position.position_id').addGroupBy('position.name').addGroupBy('position.area_id')
 
         switch (context) {
@@ -132,12 +132,12 @@ export class PositionService {
                     .leftJoin('office.enterprise', 'enterprise')
                     .addSelect('area.name', 'area_name')
                     .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.deparment_id', 'deparment_id')
+                    .addSelect('deparment.department_id', 'department_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('office.office_id', 'office_id')
                     .addSelect('enterprise.name', 'enterprise_name')
                     .addSelect('enterprise.enterprise_id', 'enterprise_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.deparment_id').addGroupBy('office.name').addGroupBy('office.office_id').addGroupBy('enterprise.name').addGroupBy('enterprise.enterprise_id')
+                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id').addGroupBy('office.name').addGroupBy('office.office_id').addGroupBy('enterprise.name').addGroupBy('enterprise.enterprise_id')
                 break;
             case PositionQueryContext.FROM_ENTERPRISE:
                 // Agregar Office + Department + Área + Position
@@ -147,10 +147,10 @@ export class PositionService {
                     .leftJoin('deparment.office', 'office')
                     .addSelect('area.name', 'area_name')
                     .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.deparment_id', 'deparment_id')
+                    .addSelect('deparment.department_id', 'department_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('office.office_id', 'office_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.deparment_id').addGroupBy('office.name').addGroupBy('office.office_id')
+                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id').addGroupBy('office.name').addGroupBy('office.office_id')
                 break;
             case PositionQueryContext.FROM_OFFICE:
                 // Agregar Department + Área + Position
@@ -159,8 +159,8 @@ export class PositionService {
                     .leftJoin('area.deparment', 'deparment')
                     .addSelect('area.name', 'area_name')
                     .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.deparment_id', 'deparment_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.deparment_id')
+                    .addSelect('deparment.department_id', 'department_id')
+                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id')
                 break;
             case PositionQueryContext.FROM_DEPARTMENT:
                 // Agregar Área + Position

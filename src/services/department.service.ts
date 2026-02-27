@@ -85,15 +85,16 @@ export class DepartmentService {
             .select(["department.department_id as department_id", "department.name as name", "department.office_id as office_id", "department.responsible_user_id as responsible_user_id"])
             // Responsable
             .leftJoin('department.responsibleUser', 'responsible')
-            .addSelect('responsible.name', 'responsible_name')
+            .leftJoin('responsible.user', 'user')
+            .addSelect('user.name', 'responsible_name')
             // * Conteo de relaciones
             .leftJoin('department.areas', 'area')
             .leftJoin('area.positions', 'position')
-            .leftJoin("position.users", "user")
+            .leftJoin("position.employees", "employee")
             .addSelect("COUNT(DISTINCT area.area_id)", "total_areas")
             .addSelect("COUNT(DISTINCT position.position_id)", "total_positions")
-            .addSelect("COUNT(DISTINCT user.user_id)", "total_users")
-            .groupBy('department.department_id').addGroupBy('department.name').addGroupBy('department.office_id').addGroupBy('department.responsible_user_id').addGroupBy('responsible.name')
+            .addSelect("COUNT(DISTINCT employee.user_id)", "total_employees")
+            .groupBy('department.department_id').addGroupBy('department.name').addGroupBy('department.office_id').addGroupBy('department.responsible_user_id').addGroupBy('user.name')
 
         switch (context) {
             case DepartmentQueryContext.FROM_GENERAL:

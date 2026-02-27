@@ -12,3 +12,17 @@ export class AddressDTO {
     @IsString()
     references: string;
 }
+
+export class UpdateAddressDTO{
+    @IsOptional()
+    @IsInt({message: 'La colonia es obligatoria'})
+    colony_id: number;
+
+    @IsOptional()
+    @IsString({ message: 'La dirección es obligatoria' })
+    street: string;
+
+    @IsOptional()
+    @IsString()
+    references: string;
+}

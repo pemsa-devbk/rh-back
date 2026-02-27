@@ -4,9 +4,9 @@ export class UpdateDepartmentDto{
     @IsString()
     name: string;
 
-    @IsOptional()
-    @IsInt()
-    office_id: number;
+    // @IsOptional()
+    // @IsInt()
+    // office_id: number;
 
     @IsOptional()
     @IsString({message: 'El usuario responsable debe ser de tipo string'})

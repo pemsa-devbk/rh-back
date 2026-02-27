@@ -4,7 +4,7 @@ export class BankingDetailsDTO {
     @IsInt({message: 'El banco es obligatorio'})
     bank_id: number;
 
-    @IsNumberString()
+    @IsNumberString({}, {message: "La CLABE interbancaria debe ser numerica"})
     @Length(18, 18, { message: 'La CLABE interbancaria es obligatoria y debe contener 18 caracteres' })
     CLABE: string;
 

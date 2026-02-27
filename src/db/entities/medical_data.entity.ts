@@ -1,11 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 import { Employee } from "./employee";
 
 @Entity({ name: 'medical_data' })
 export class MedicalData {
-
-    @PrimaryGeneratedColumn('increment')
-    medical_data_id: number;
 
     @Column({
         type: 'varchar',
@@ -34,7 +31,7 @@ export class MedicalData {
     })
     diseases: string;
 
-    @Column({ type: 'varchar', length: 5 })
+    @PrimaryColumn({ type: 'varchar', length: 5 })
     user_id: string;
 
     // * Relaciones

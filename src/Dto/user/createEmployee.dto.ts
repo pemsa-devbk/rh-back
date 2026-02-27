@@ -30,9 +30,6 @@ export class CreateEmployeeDTO extends CreateUserDto {
     @IsString()
     cuip: string;
 
-    @IsInt()
-    role_id: number;
-
     @IsOptional()
     @IsInt({ message: 'El campo número de hijos solo acepta valores numericos enteros' })
     num_children: number;
@@ -51,7 +48,7 @@ export class CreateEmployeeDTO extends CreateUserDto {
     num_infonavit: string;
 
 
-    @IsEnum(MaritalStatus, { message: 'Es tado civil es obligatoriao' })
+    @IsEnum(MaritalStatus, { message: 'El estado civil es obligatoriao' })
     marital_status: MaritalStatus;
 
     @IsString({ message: 'El lugar de registro es obligatorio' })
@@ -60,7 +57,7 @@ export class CreateEmployeeDTO extends CreateUserDto {
     @IsNumber({}, { message: 'El salario es obligatorio' })
     salary: number;
 
-    @IsNumberString()
+    @IsNumberString({}, {message: 'El codigo postal de constancia de situación fiscall debe ser numerico'})
     @Length(5, 5, { message: 'El Codigo postal de constancia de situacion fiscal debe tener 5 digitos' })
     cp_csf: string;
 

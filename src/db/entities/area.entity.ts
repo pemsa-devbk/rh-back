@@ -26,7 +26,7 @@ export class Area {
         {onDelete: 'CASCADE'}
     )
     @JoinColumn({ name: 'department_id' })
-    deparment: Department;
+    department: Department;
 
     @ManyToOne(
         () => Employee,

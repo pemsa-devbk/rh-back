@@ -6,9 +6,9 @@ export class UpdateAreaDto {
     @IsString()
     name: string;
 
-    @IsOptional()
-    @IsInt()
-    office_id: number;
+    // @IsOptional()
+    // @IsInt()
+    // department_id: number;
 
     @IsOptional()
     @IsString()

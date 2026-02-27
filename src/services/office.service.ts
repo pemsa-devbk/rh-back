@@ -72,15 +72,16 @@ export class OfficeService {
 
     private getQuery(context: OfficeQueryContext = OfficeQueryContext.FROM_ENTERPRISE) {
         const query = this.officeRepository.createQueryBuilder("office")
-            .select(["office.office_id as office_id", "office.name as name", "office.enterprise_id as enterprise_id", "office.responsible_user_id as responsible_user_id"])
+            .select(["office.office_id as office_id", "office.name as name", "office.enterprise_id as enterprise_id"])
             .leftJoin("office.departments", "department")
             .leftJoin("department.areas", "area")
             .leftJoin("area.positions", "position")
-            .leftJoin("position.users", "user")
+            .leftJoin("position.employees", "employee")
+
             .addSelect("COUNT(DISTINCT department.department_id)", "total_departments")
             .addSelect("COUNT(DISTINCT area.area_id)", "total_areas")
             .addSelect("COUNT(DISTINCT position.position_id)", "total_positions")
-            .addSelect("COUNT(DISTINCT user.user_id)", "total_users")
+            .addSelect("COUNT(DISTINCT employee.user_id)", "total_employees")
             .groupBy("office.office_id").addGroupBy("office.name").addGroupBy('office.enterprise_id')
 
         switch (context) {

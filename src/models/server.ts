@@ -25,6 +25,8 @@ import { StateRoute } from '../routes/state.route';
 import { MunicipalityRoute } from '../routes/municipality.route';
 import { ColonyRoute } from '../routes/colony.route';
 import { BankRoute } from '../routes/bank.route';
+import { EmployeeRoute } from '../routes/employee.route';
+import { DepartmentRoute } from '../routes/department.route';
 
 export class Server {
     private app: Application;
@@ -66,20 +68,24 @@ export class Server {
         this.app.use(contactRoute.router);
         const userRoute = new UserRoute();
         this.app.use(userRoute.router);
+        
+        const enterpriseRouter = new EnterpriseRoute();
+        this.app.use(enterpriseRouter.router);
+        const officeRouter = new OfficeRoute();
+        this.app.use(officeRouter.router);
+        const departmentRouter = new DepartmentRoute();
+        this.app.use( departmentRouter.router );
         const areaRoute = new AreaRoute();
         this.app.use(areaRoute.router);
         const positionRoute = new PositionRoute();
         this.app.use(positionRoute.router);
-        const officeRouter = new OfficeRoute();
-        this.app.use(officeRouter.router);
+
         const binnacleRouter = new BinnacleRoute();
         this.app.use(binnacleRouter.router);
         const holidayRouter = new HolidayRoute();
         this.app.use(holidayRouter.router);
         const configRouter = new ConfigRoute();
         this.app.use(configRouter.router);
-        const enterpriseRouter = new EnterpriseRoute();
-        this.app.use(enterpriseRouter.router);
         const courseRouter = new CourseRoute();
         this.app.use(courseRouter.router);
         const stateRouter = new StateRoute();
@@ -90,6 +96,8 @@ export class Server {
         this.app.use(colonyRoute.router);
         const bankRoute = new BankRoute();
         this.app.use( bankRoute.router ); 
+        const employeeRoute = new EmployeeRoute();
+        this.app.use(employeeRoute.router);
 
         // TODO: Revisar hasta tener datos
         this.app.use('/bitrhDay', async (req, res) => {

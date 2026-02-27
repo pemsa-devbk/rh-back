@@ -1,7 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { NextFunction, Request, Response } from "express";
 import { CreateUserDto } from '../Dto/user/createUser.dto';
-import { upDateUserDTO } from '../Dto/user/upDateUser.dto';
 import { UserService } from '../services/user.service';
 import { QueryRelationsDTO } from '../Dto/query_relations.dto';
 

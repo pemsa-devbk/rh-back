@@ -28,7 +28,7 @@ export class Department {
 
     @OneToMany(
         () => Area,
-        (area) => area.deparment
+        (area) => area.department
     )
     areas: Area[];
 

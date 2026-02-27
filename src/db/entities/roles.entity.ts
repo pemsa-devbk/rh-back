@@ -3,7 +3,7 @@ import { UserRole } from "./user_role.entity";
 
 @Entity({name: 'roles'})
 export class Rol{
-    @PrimaryGeneratedColumn('identity')
+    @PrimaryGeneratedColumn('increment')
     role_id: number;
 
     @Column({type: 'varchar', length: 50})

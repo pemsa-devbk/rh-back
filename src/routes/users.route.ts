@@ -6,7 +6,6 @@ import { authentication } from "../middlewares/auth.middleware";
 import multer from 'multer';
 import { validArchivo } from "../middlewares/validationFile.middleware";
 import { validationMiddleware } from "../middlewares/validation.middleware";
-import { upDateUserDTO } from "../Dto/user/upDateUser.dto";
 
 // Validar si es una imagen
 function isImage(mimetype: string) {

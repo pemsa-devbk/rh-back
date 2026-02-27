@@ -1,11 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Colony } from "./colony.entity";
 import { Employee } from "./employee";
 
 @Entity({name: 'addresses'})
 export class Address {
-    @PrimaryGeneratedColumn('increment')
-    address_id: number;
 
     @Column({type: 'varchar', length: 200})
     street: string;
@@ -13,7 +11,7 @@ export class Address {
     @Column({type: 'text', nullable: true})
     references: string;
 
-    @Column({ type: 'varchar', length: 5 })
+    @PrimaryColumn({ type: 'varchar', length: 5 })
     user_id: string;
 
     @Column()
