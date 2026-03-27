@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Colony } from "./colony.entity";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({name: 'addresses'})
 export class Address {
@@ -8,11 +8,11 @@ export class Address {
     @Column({type: 'varchar', length: 200})
     street: string;
 
-    @Column({type: 'text', nullable: true})
+    @Column({type: 'varchar', nullable: true})
     references: string;
 
     @PrimaryColumn({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
 
     @Column()
     colony_id: number;
@@ -22,7 +22,7 @@ export class Address {
         () => Employee,
         (employee) => employee.address
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 
     @ManyToOne(

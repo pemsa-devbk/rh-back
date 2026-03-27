@@ -19,6 +19,8 @@ export class EmployeeRoute{
         this.router.get('/employees/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
         this.router.delete('/employees/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
         this.router.patch('/employees', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateEmployeeDTO)], this.controller.update)
+        // TODO falta implementar
+        this.router.put('/employees/:user_id/status', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
 
         // * Rutas relacionadas (+1 nivel)
         this.router.get('/enterprises/:enterprise_id/employees', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByEnterprise );

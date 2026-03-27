@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({ name: 'contracts' })
 export class Contract {
@@ -13,7 +13,7 @@ export class Contract {
     validity: Date;
 
     @Column({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
     
     @CreateDateColumn()
     created_at: Date;
@@ -24,6 +24,6 @@ export class Contract {
         (employee) => employee.contracts,
         { onDelete: 'CASCADE' }
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 }

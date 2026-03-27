@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, rmSync } from "fs";
 import { appDataSource } from "../db/dataBase";
-import { Employee } from "../db/entities/employee";
+import { Employee } from "../db/entities/employee.entity";
 import { CreateEmployeeDTO } from "../Dto/user/createEmployee.dto";
 import { join } from 'path';
 import { Binnacle } from "../db/entities/binnacle.entity";
@@ -51,17 +51,17 @@ export class EmployeeService {
             });
             // * Verificar si vienen los campos relacionados
             if (address)
-                await transactionalEntityManager.insert(Address, { ...address, user_id });
+                await transactionalEntityManager.insert(Address, { ...address, employee_id: user.user_id });
             if (banking)
-                await transactionalEntityManager.insert(BankingDetails, { ...banking, user_id });
+                await transactionalEntityManager.insert(BankingDetails, { ...banking, employee_id: user.user_id });
             if (contract)
-                await transactionalEntityManager.insert(Contract, { ...contract, user_id });
+                await transactionalEntityManager.insert(Contract, { ...contract, employee_id: user.user_id });
             if (enterpiseInformation)
-                await transactionalEntityManager.insert(EnterpriseInformation, { ...enterpiseInformation, user_id });
+                await transactionalEntityManager.insert(EnterpriseInformation, { ...enterpiseInformation, employee_id: user.user_id });
             if (license)
-                await transactionalEntityManager.insert(License, { ...license, user_id });
+                await transactionalEntityManager.insert(License, { ...license, employee_id: user.user_id });
             if (medical)
-                await transactionalEntityManager.insert(MedicalData, { ...medical, user_id });
+                await transactionalEntityManager.insert(MedicalData, { ...medical, employee_id: user.user_id });
 
             const pathUser = join(this.dir, user_id);
             // * Eliminar en caso de que exista
@@ -89,18 +89,18 @@ export class EmployeeService {
         return [employees, total];
     }
 
-    public async getOne(user_id: string){
+    public async getOne(user_id: string) {
         return await this.findOneOrFail(user_id);
     }
 
-    public async update(user_id: string){
+    public async update(user_id: string) {
         const user = await this.findOneOrFail(user_id);
-        return {...user};
+        return { ...user };
     }
 
-    public async delete(user_id: string){
+    public async delete(user_id: string) {
         const user = await this.findOneOrFail(user_id);
-        await this.repository.delete({user_id});
+        await this.repository.delete({ user_id });
         return user;
     }
 
@@ -186,7 +186,9 @@ export class EmployeeService {
         const query = this.repository.createQueryBuilder('employee')
             .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.birthdate as birthdate', 'employee.curp as curp', 'employee.status as status', 'employee.rfc as rfc', 'employee.cuip as cuip', 'employee.num_children as num_children', 'employee.vacation_days as vacation_days', 'employee.boss_id as boss_id', 'employee.have_uniform as have_uniform', 'employee.num_infonavit as num_infonavit', 'employee.marital_status as marital_status', 'employee.place_registration as place_registration', 'employee.salary as salary', 'employee.cp_csf as cp_csf', 'employee.date_entry as date_entry', 'employee.position_id as position_id'])
             .leftJoin('employee.user', 'user')
-            .addSelect('user.name', 'name');
+            .addSelect('user.name', 'name')
+            .addSelect('user.update_at', 'update_at')
+            .addSelect('user.deleted_at', 'deleted_at')
         switch (context) {
             case EmployeeQueryContext.FROM_GENERAL:
                 // devolver enterprise, office, department, area, position
@@ -203,7 +205,7 @@ export class EmployeeService {
                     .addSelect('office.office_id', 'office_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('enterprise.enterprise_id', 'enterprise_id')
-                    .addSelect('enterprise.name', 'enterprise.enterprise_name');
+                    .addSelect('enterprise.name', 'enterprise_name');
                 break;
             case EmployeeQueryContext.FROM_ENTERPRISE:
                 // devolver office, department, area, position
@@ -246,7 +248,7 @@ export class EmployeeService {
             case EmployeeQueryContext.FROM_COURSE:
                 // devolver position
                 query.leftJoin('employee.courseEmployees', 'courseEmployee')
-                    .addSelect('courseEmployee.have_proof', 'courseEmployee.have_proof')
+                    .addSelect('courseEmployee.have_proof', 'have_proof')
                 break;
             default: break;
         }

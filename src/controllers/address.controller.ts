@@ -8,9 +8,9 @@ export class AddressController {
 
     public create = async(req:Request, res: Response, next: NextFunction) => {
         const createDTO = req.body;
-        const {user_id} = req.params;
+        const {employee_id} = req.params;
         try {
-            const address = await this.service.create(user_id, createDTO);
+            const address = await this.service.create(employee_id, createDTO);
             res.json(address);
         } catch (error) {
             next(error);
@@ -18,9 +18,9 @@ export class AddressController {
     }
 
     public getOne = async(req:Request, res: Response, next: NextFunction) => {
-        const {user_id} = req.params;
+        const {employee_id} = req.params;
         try {
-            const address = await this.service.getOne(user_id);
+            const address = await this.service.getOne(employee_id);
             res.json(address);
         } catch (error) {
             next(error);
@@ -29,9 +29,9 @@ export class AddressController {
 
     public update = async(req:Request, res: Response, next: NextFunction) => {
         const updateDTO = req.body;
-        const {user_id} = req.params;
+        const {employee_id} = req.params;
         try {
-            const address = await this.service.update(user_id, updateDTO);
+            const address = await this.service.update(employee_id, updateDTO);
             res.json(address);
         } catch (error) {
             next(error);

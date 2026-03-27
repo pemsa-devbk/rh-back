@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { Course } from "./course.entity";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({name: 'course_employee'})
 export class CourseEmployee{

@@ -1,10 +1,10 @@
 export enum BloodType {
     A = "A+",
     AN = "A-",
-    BP = "B+",
+    B = "B+",
     BN = "B-",
-    ABP = "AB+",
+    AB = "AB+",
     ABN = "AB-",
-    OP = "O+",
+    O = "O+",
     ON = "O-",
 }

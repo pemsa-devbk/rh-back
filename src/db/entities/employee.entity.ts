@@ -13,6 +13,7 @@ import { Area } from "./area.entity";
 import { Department } from "./department.entity";
 import { CourseEmployee } from "./course_employee.entity";
 import { Position } from "./position.entity";
+import { EmployeeFiles } from "./employee_files.entity";
 
 @Entity({ name: 'employees' })
 export class Employee {
@@ -191,6 +192,12 @@ export class Employee {
         (courseEmployee) => courseEmployee.employee
     )
     courseEmployees: CourseEmployee[];
+
+    @OneToMany(
+        () => EmployeeFiles,
+        (employeeFiles) => employeeFiles.employee
+    )
+    employeeFiles: EmployeeFiles[];
 
 
     @ManyToOne(

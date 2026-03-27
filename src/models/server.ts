@@ -4,29 +4,17 @@ import morgan from 'morgan'
 import { join } from 'path'
 import logger from '../config/logger';
 import { ContactRoute } from '../routes/contact.route'
-import authRoutes from '../routes/auth.route'
-import seedRoutes from '../routes/seed.route'
-import { FileRoute } from '../routes/file.route'
-import { HolidayRoute } from '../routes/holidays.route'
-import { BinnacleRoute } from '../routes/binnacle.route';
 import { appDataSource } from '../db/dataBase';
 import { TaskService } from '../services/task.service';
-import { AreaRoute } from '../routes/area.route';
-import { PositionRoute } from '../routes/position.route';
-import { OfficeRoute } from '../routes/office.route';
-import { UserRoute } from '../routes/users.route';
-import { ConfigRoute } from '../routes/config.route';
-import { EnterpriseRoute } from '../routes/enterprise.route';
 import { BirthdayService } from '../services/birthday.service';
 import { UserService } from '../services/user.service';
-import { Not } from 'typeorm';
-import { CourseRoute } from '../routes/course.route';
-import { StateRoute } from '../routes/state.route';
-import { MunicipalityRoute } from '../routes/municipality.route';
-import { ColonyRoute } from '../routes/colony.route';
-import { BankRoute } from '../routes/bank.route';
-import { EmployeeRoute } from '../routes/employee.route';
-import { DepartmentRoute } from '../routes/department.route';
+import fileUpload from 'express-fileupload';
+import authRoutes from '../routes/auth.route'
+import seedRoutes from '../routes/seed.route'
+
+
+import { ContractRoute, CourseRoute, StateRoute, MunicipalityRoute, ColonyRoute, BankRoute, EmployeeRoute, DepartmentRoute, AddressRoute, MedicalRoute, BankingDetailsRoute, LicenseRoute, EnterpriseInformationRoute, FileRoute ,HolidayRoute ,BinnacleRoute ,AreaRoute ,PositionRoute ,OfficeRoute ,UserRoute ,ConfigRoute ,EnterpriseRoute } from '../routes/index.route'
+
 
 export class Server {
     private app: Application;
@@ -49,6 +37,7 @@ export class Server {
     private middlewares() {
         this.app.use(cors()); //permite acceder a los recursos restringidos de un sitio desde otro dominio
         this.app.use(express.json());
+        this.app.use(fileUpload());
         this.app.use(morgan('dev')); //permite el manejo de los loggers de las solicitudes de Entrada.
         //en caso de tener archivos estáticos, express los manejara
         const path = join(__dirname, '../../public');
@@ -98,6 +87,18 @@ export class Server {
         this.app.use( bankRoute.router ); 
         const employeeRoute = new EmployeeRoute();
         this.app.use(employeeRoute.router);
+        const addressRoute = new AddressRoute();
+        this.app.use( addressRoute.router );
+        const medicalRoute = new MedicalRoute();
+        this.app.use( medicalRoute.router );
+        const bankingRoute = new BankingDetailsRoute();
+        this.app.use( bankingRoute.router );
+        const licenseRoute = new LicenseRoute();
+        this.app.use( licenseRoute.router );
+        const enterpriseInformation = new EnterpriseInformationRoute();
+        this.app.use( enterpriseInformation.router );
+        const contractRoute = new ContractRoute();
+        this.app.use( contractRoute.router );
 
         // TODO: Revisar hasta tener datos
         this.app.use('/bitrhDay', async (req, res) => {

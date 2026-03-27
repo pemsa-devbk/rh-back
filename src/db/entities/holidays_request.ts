@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { HolidayDays } from "./holidays_days";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({name: 'holidays_request'})
 export class HolidayRequest {

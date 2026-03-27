@@ -1,12 +1,11 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({ name: 'medical_data' })
 export class MedicalData {
 
     @Column({
         type: 'varchar',
-        nullable: true,
         length: 3
     })
     blood_type: string;
@@ -32,14 +31,14 @@ export class MedicalData {
     diseases: string;
 
     @PrimaryColumn({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
 
     // * Relaciones
     @OneToOne(
         () => Employee,
         (employee) => employee.medicalData
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 
 }

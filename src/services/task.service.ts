@@ -7,7 +7,7 @@ import { StatusHoliday } from "../types/enums/status_holidays";
 import { StatusUser } from "../types/enums/status_user";
 import { CronJob } from 'cron'
 import { EmailService } from "./Email.service";
-import { Employee } from "../db/entities/employee";
+import { Employee } from "../db/entities/employee.entity";
 
 
 export class TaskService {

@@ -62,7 +62,7 @@ export class StateService {
         .leftJoin('colony.addresses', 'address')
         .addSelect('COUNT(DISTINCT municipality.municipality_id)', 'total_municipalities')
         .addSelect('COUNT(DISTINCT colony.colony_id)', 'total_colonies')
-        .addSelect('COUNT(DISTINCT address.address_id)', 'total_addresses')
+        .addSelect('COUNT(DISTINCT address.user_id)', 'total_addresses')
         .groupBy('state.code_state').addGroupBy('state.name')
     }
 }

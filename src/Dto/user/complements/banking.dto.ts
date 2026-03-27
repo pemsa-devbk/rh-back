@@ -1,10 +1,10 @@
-import { IsInt, IsNumberString, Length } from "class-validator";
+import { IsInt, IsNumberString, IsOptional, Length } from "class-validator";
 
 export class BankingDetailsDTO {
-    @IsInt({message: 'El banco es obligatorio'})
+    @IsInt({ message: 'El banco es obligatorio' })
     bank_id: number;
 
-    @IsNumberString({}, {message: "La CLABE interbancaria debe ser numerica"})
+    @IsNumberString({}, { message: "La CLABE interbancaria debe ser numerica" })
     @Length(18, 18, { message: 'La CLABE interbancaria es obligatoria y debe contener 18 caracteres' })
     CLABE: string;
 
@@ -12,4 +12,20 @@ export class BankingDetailsDTO {
     @Length(13, 24, { message: 'El numero de cuenta debe tener de 13 a 24 digitos' })
     account_number: string;
 
+}
+
+export class UpdateBankingDetailsDTO {
+    @IsOptional()
+    @IsInt({ message: 'El banco es obligatorio' })
+    bank_id: number;
+
+    @IsOptional()
+    @IsNumberString({}, { message: "La CLABE interbancaria debe ser numerica" })
+    @Length(18, 18, { message: 'La CLABE interbancaria es obligatoria y debe contener 18 caracteres' })
+    CLABE: string;
+
+    @IsOptional()
+    @IsNumberString()
+    @Length(13, 24, { message: 'El numero de cuenta debe tener de 13 a 24 digitos' })
+    account_number: string;
 }

@@ -1,7 +1,8 @@
 import { Column, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Binnacle } from "./binnacle.entity";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 import { UserRole } from "./user_role.entity";
+import { EmployeeFiles } from "./employee_files.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -55,6 +56,12 @@ export class User {
         (userRole) => userRole.user
     )
     userRoles: UserRole[];
+
+    @OneToMany(
+        () => EmployeeFiles,
+        (employeeFiles) => employeeFiles.userUploaded
+    )
+    uploadedFiles: EmployeeFiles[];
 
 }
 

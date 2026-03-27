@@ -28,7 +28,9 @@ import { State } from "./entities/state.entity";
 import { Bank } from "./entities/bank.entity";
 import { Rol } from "./entities/roles.entity";
 import { UserRole } from "./entities/user_role.entity";
-import { Employee } from "./entities/employee";
+import { Employee } from "./entities/employee.entity";
+import { File } from "./entities/file.entity";
+import { EmployeeFiles } from "./entities/employee_files.entity";
 
 export const appDataSource = new DataSource ({
     type:'mssql',
@@ -39,7 +41,7 @@ export const appDataSource = new DataSource ({
     database: enviroment.DATABASE,
     synchronize: true, 
     // logging: true,
-    entities: [Address, Area, Bank, BankingDetails, Binnacle, Colony, Contact, Contract, CourseEmployee, Course, Department, EnterpriseInformation, Enterprise, Employee, HolidaysConfig, HolidayDays, HolidayRequest, License, MedicalData, Municipality, Office, Position, Rol, Settlement, Signature, State, SystemConfiguration, User, UserRole],
+    entities: [Address, Area, Bank, BankingDetails, Binnacle, Colony, Contact, Contract, CourseEmployee, Course, Department, EnterpriseInformation, Enterprise, Employee, HolidaysConfig, HolidayDays, HolidayRequest, License, MedicalData, Municipality, Office, Position, Rol, Settlement, Signature, State, SystemConfiguration, User, UserRole, File, EmployeeFiles],
     extra: {
         trustServerCertificate:true
     }

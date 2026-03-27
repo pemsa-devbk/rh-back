@@ -9,36 +9,36 @@ export class ContactService {
         private readonly contactRepository = appDataSource.getRepository(Contact),
     ) { }
 
-    public async create(user_id: string, contactsDto: CreateContactDTO) {
+    public async create(employee_id: string, contactsDto: CreateContactDTO) {
         const contacts = this.contactRepository.create(contactsDto.contacts.map(contact => ({
-            ...contact, user_id
+            ...contact, user_id: employee_id
         })));
         await this.contactRepository.save(contacts);
         return contacts;
     }
 
-    public getContactsByUser(user_id: string, pagination: PaginationDto) {
+    public getContactsByUser(employee_id: string, pagination: PaginationDto) {
         const { skip, take } = pagination;
         return this.contactRepository.findAndCount({
-            where: { user_id },
+            where: { employee_id },
             take, skip
         });
     }
 
-    public async update(user_id: string, contact_id: number, updateDto: UpDateContactDTO): Promise<Contact>{
-        const contact = await this.findContact(user_id, contact_id);
+    public async update(employee_id: string, contact_id: number, updateDto: UpDateContactDTO): Promise<Contact>{
+        const contact = await this.findContact(employee_id, contact_id);
         await this.contactRepository.update({contact_id}, updateDto);
         return {...contact, ...updateDto};
     }
 
-    public async delete(user_id: string, contact_id: number){
-        const contact = await this.findContact(user_id, contact_id);
+    public async delete(employee_id: string, contact_id: number){
+        const contact = await this.findContact(employee_id, contact_id);
         await this.contactRepository.delete({contact_id});
         return contact;
     }
 
-    private async findContact (user_id: string, contact_id: number){
-        const contact = await this.contactRepository.findOne({where: {contact_id, user_id}});
+    private async findContact (employee_id: string, contact_id: number){
+        const contact = await this.contactRepository.findOne({where: {contact_id, employee_id}});
         if(!contact) throw 'Contacto no encontrado';
         return contact;
     }

@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({ name: 'contacts' })
 export class Contact {
@@ -19,7 +19,7 @@ export class Contact {
     notes: string;
 
     @Column({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
 
     //Relaciones con el usuario:
     @ManyToOne(
@@ -27,6 +27,6 @@ export class Contact {
         (employee) => employee.contacts,
         { onDelete: 'CASCADE' }
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 }

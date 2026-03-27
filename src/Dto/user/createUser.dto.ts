@@ -13,8 +13,9 @@ export class CreateUserDto {
     @Length(10, 100, { message: 'El nombre de usuario debe tener al menos 10 catacteres' })
     name: string; 
 
+    @IsOptional()
     @IsInt({message: 'El identificador de rol es obligatorio'})
-    role_id: number;
+    role_id: number = 2;
 
     @IsOptional()
     @IsString()

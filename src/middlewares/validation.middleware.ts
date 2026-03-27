@@ -26,6 +26,28 @@ export const validationMiddleware = <T extends object> (dtoClass: new() => T) =>
     }
 }
 
+export const validationQuery = <T extends object> (dtoClass: new() => T) => {
+    //nos devuelve
+    return (req: Request, res:Response, next: () => void) => {
+        //pasamos el texto plano
+        
+        const data = plainToInstance (dtoClass, req.query);
+        
+
+        //crear const error para la validacion
+        const errors = validateSync(data, {whitelist: true, forbidNonWhitelisted: true });
+        
+        //buscamos que el error sea más de 0
+        if(errors.length > 0){
+            return res.status(400).json({
+                errors: getErrors(errors)[0]
+            })
+        }
+        req.validatedQuery = data as Record<string, unknown>;
+        return next();
+    }
+}
+
 export const getErrors = (errors:ValidationError[],property?:string): string[] => {
     return errors.flatMap((error) =>{
         if(error.children?.length >0 ) return getErrors(error.children,`${property ? `${property}-` : ''}${error.property || ''}`)

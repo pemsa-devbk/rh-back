@@ -127,40 +127,40 @@ export class PositionService {
                 // Agregar Enterprise + Office + Department + Área + Position
                 query
                     .leftJoin('position.area', 'area')
-                    .leftJoin('area.deparment', 'deparment')
-                    .leftJoin('deparment.office', 'office')
+                    .leftJoin('area.department', 'department')
+                    .leftJoin('department.office', 'office')
                     .leftJoin('office.enterprise', 'enterprise')
                     .addSelect('area.name', 'area_name')
-                    .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.department_id', 'department_id')
+                    .addSelect('department.name', 'department_name')
+                    .addSelect('department.department_id', 'department_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('office.office_id', 'office_id')
                     .addSelect('enterprise.name', 'enterprise_name')
                     .addSelect('enterprise.enterprise_id', 'enterprise_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id').addGroupBy('office.name').addGroupBy('office.office_id').addGroupBy('enterprise.name').addGroupBy('enterprise.enterprise_id')
+                    .addGroupBy('area.name').addGroupBy('department.name').addGroupBy('department.department_id').addGroupBy('office.name').addGroupBy('office.office_id').addGroupBy('enterprise.name').addGroupBy('enterprise.enterprise_id')
                 break;
             case PositionQueryContext.FROM_ENTERPRISE:
                 // Agregar Office + Department + Área + Position
                 query
                     .leftJoin('position.area', 'area')
-                    .leftJoin('area.deparment', 'deparment')
-                    .leftJoin('deparment.office', 'office')
+                    .leftJoin('area.department', 'department')
+                    .leftJoin('department.office', 'office')
                     .addSelect('area.name', 'area_name')
-                    .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.department_id', 'department_id')
+                    .addSelect('department.name', 'department_name')
+                    .addSelect('department.department_id', 'department_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('office.office_id', 'office_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id').addGroupBy('office.name').addGroupBy('office.office_id')
+                    .addGroupBy('area.name').addGroupBy('department.name').addGroupBy('department.department_id').addGroupBy('office.name').addGroupBy('office.office_id')
                 break;
             case PositionQueryContext.FROM_OFFICE:
                 // Agregar Department + Área + Position
                 query
                     .leftJoin('position.area', 'area')
-                    .leftJoin('area.deparment', 'deparment')
+                    .leftJoin('area.department', 'department')
                     .addSelect('area.name', 'area_name')
-                    .addSelect('deparment.name', 'deparment_name')
-                    .addSelect('deparment.department_id', 'department_id')
-                    .addGroupBy('area.name').addGroupBy('deparment.name').addGroupBy('deparment.department_id')
+                    .addSelect('department.name', 'department_name')
+                    .addSelect('department.department_id', 'department_id')
+                    .addGroupBy('area.name').addGroupBy('department.name').addGroupBy('department.department_id')
                 break;
             case PositionQueryContext.FROM_DEPARTMENT:
                 // Agregar Área + Position

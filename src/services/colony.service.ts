@@ -72,7 +72,7 @@ export class ColonyService {
         const colonies = await this.repository.find({
             where: {postal_code}, relations: { municipality: {state: true}, settlement: true}
         });
-        if(colonies.length === 0) return{};
+        if(colonies.length === 0) throw new CustomError('Codigo postal no registrado', 404);
         return {
             state_name: colonies[0].municipality.state.name,
             code_state: colonies[0].municipality.state.code_state,
@@ -112,7 +112,7 @@ export class ColonyService {
             .leftJoin('colony.addresses', 'address')
             .leftJoin('colony.settlement', 'settlement')
             .addSelect('settlement.name', 'settlement_name')
-            .addSelect('COUNT(DISTINCT address.address_id)', 'total_addresses')
+            .addSelect('COUNT(DISTINCT address.user_id)', 'total_addresses')
             .groupBy('colony.colony_id').addGroupBy('colony.postal_code').addGroupBy('colony.name').addGroupBy('colony.code_settlement').addGroupBy('colony.municipality_id').addGroupBy('settlement.name');
         switch(contex){
             case ColonyQueryContext.FROM_GENERAL:

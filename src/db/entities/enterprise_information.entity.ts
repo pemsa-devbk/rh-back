@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({ name: 'enterprise_information' })
 export class EnterpriseInformation {
@@ -17,13 +17,13 @@ export class EnterpriseInformation {
     ext: string;
 
     @PrimaryColumn({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
 
     // * Relaciones
     @OneToOne(
         () => Employee,
         (employee) => employee.enterpriseInformation
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 }

@@ -106,7 +106,7 @@ export class AreaService {
             .leftJoin('area.responsibleUser', 'responsibleUser')
             .leftJoin('responsibleUser.user', 'user')
             .addSelect('user.name', 'responsible_name')
-            // Conteo de relaciones
+            // * Conteo de relaciones
             .leftJoin("area.positions", "position")
             .leftJoin("position.employees", "employee")
             .addSelect("COUNT(DISTINCT position.position_id)", "total_positions")
@@ -118,15 +118,15 @@ export class AreaService {
             case AreaQueryContext.FROM_GENERAL:
                 // Agregar enterprise + office + department
                 query
-                    .leftJoin('area.deparment', 'deparment')
-                    .leftJoin('deparment.office', 'office')
+                    .leftJoin('area.department', 'department')
+                    .leftJoin('department.office', 'office')
                     .leftJoin('office.enterprise', 'enterprise')
-                    .addSelect('deparment.name', 'deparment_name')
+                    .addSelect('department.name', 'department_name')
                     .addSelect('office.office_id', 'office_id')
                     .addSelect('office.name', 'office_name')
                     .addSelect('enterprise.enterprise_id', 'enterprise_id')
                     .addSelect('enterprise.name', 'enterprise_name')
-                    .addGroupBy('deparment.name')
+                    .addGroupBy('department.name')
                     .addGroupBy('office.office_id')
                     .addGroupBy('office.name')
                     .addGroupBy('enterprise.enterprise_id')
@@ -135,21 +135,21 @@ export class AreaService {
             case AreaQueryContext.FROM_ENTERPRISE:
                 // Agregar office + department
                 query
-                    .leftJoin('area.deparment', 'deparment')
-                    .leftJoin('deparment.office', 'office')
-                    .addSelect('deparment.name', 'deparment_name')
+                    .leftJoin('area.department', 'department')
+                    .leftJoin('department.office', 'office')
+                    .addSelect('department.name', 'department_name')
                     .addSelect('office.office_id', 'office_id')
                     .addSelect('office.name', 'office_name')
-                    .addGroupBy('deparment.name')
+                    .addGroupBy('department.name')
                     .addGroupBy('office.office_id')
                     .addGroupBy('office.name')
                 break;
             case AreaQueryContext.FROM_OFFICE:
                 // Agregar office
                 query
-                    .leftJoin('area.deparment', 'deparment')
-                    .addSelect('deparment.name', 'deparment_name')
-                    .addGroupBy('deparment.name')
+                    .leftJoin('area.department', 'department')
+                    .addSelect('department.name', 'department_name')
+                    .addGroupBy('department.name')
                 break;
             default:
                 // Ya conozco office y enterprise, no agregar nada adicional

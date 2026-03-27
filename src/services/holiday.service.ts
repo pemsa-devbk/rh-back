@@ -16,7 +16,7 @@ import { PaginationDto } from "../Dto/pagination.dto";
 import { StatusUser } from "../types/enums/status_user";
 import { Between, EntityManager } from "typeorm";
 import { Position } from "../db/entities/position.entity";
-import { Employee } from "../db/entities/employee";
+import { Employee } from "../db/entities/employee.entity";
 
 interface TextRich {
     text: string;

@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Area } from "./area.entity";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({name: 'positions'})
 export class Position{

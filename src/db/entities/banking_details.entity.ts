@@ -1,6 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Bank } from "./bank.entity";
-import { Employee } from "./employee";
+import { Employee } from "./employee.entity";
 
 @Entity({ name: 'banking_details' })
 export class BankingDetails {
@@ -12,7 +12,7 @@ export class BankingDetails {
     account_number: string;
 
     @PrimaryColumn({type: 'varchar', length: 5})
-    user_id: string;
+    employee_id: string;
     
     @Index()
     @Column()
@@ -23,7 +23,7 @@ export class BankingDetails {
         () => Employee,
         (employee) => employee.bankingDetails
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 
     @ManyToOne(

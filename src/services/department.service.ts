@@ -103,7 +103,7 @@ export class DepartmentService {
                     .leftJoin('office.enterprise', 'enterprise')
                     .addSelect('office.name', 'office_name')
                     .addSelect('enterprise.name', 'enterprise_name')
-                    .addSelect('enterprise.enterprise_id', 'enterprise_enterprise_id')
+                    .addSelect('enterprise.enterprise_id', 'enterprise_id')
                     .addGroupBy('office.name').addGroupBy('enterprise.name').addGroupBy('enterprise.enterprise_id')
                 break;
             case DepartmentQueryContext.FROM_ENTERPRISE:
