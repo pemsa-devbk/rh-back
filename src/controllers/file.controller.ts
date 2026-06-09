@@ -61,10 +61,10 @@ export class FileController {
     }
 
     public uploadForUser = async(req:Request, res: Response, next: NextFunction) => {
-        const {file_id, employee_id} = req.params;
+        const {employee_id} = req.params;
         const dto = req.body;
         try {
-            const msg = await this.fileService.uploadFileUser(+file_id, employee_id, req.files, dto, req.user)
+            const msg = await this.fileService.uploadFileUser(employee_id, req.files, dto, req.user)
             res.json({msg})
         } catch (error) {
             next(error);

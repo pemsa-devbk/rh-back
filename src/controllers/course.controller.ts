@@ -65,9 +65,9 @@ export class CourseController {
     }
     //* Relaciones
     public uploadProof = async (req: Request, res: Response, next: NextFunction) => {
-        const { course_id, user_id } = req.params;
+        const { course_id, employee_id } = req.params;
         try {
-            await this.courseService.uploadProof(+course_id, user_id, req.file);
+            await this.courseService.uploadProof(+course_id, employee_id, req.files);
             res.json({
                 message: 'Comprobante actualizado'
             })
@@ -77,9 +77,9 @@ export class CourseController {
     }
 
     public donwloadProof = (req: Request, res: Response, next: NextFunction) => {
-        const { course_id, user_id } = req.params;
+        const { course_id, employee_id } = req.params;
         try {
-            const [filename, dir, mimeType] = this.courseService.downloadProof(+course_id, user_id);
+            const [filename, dir, mimeType] = this.courseService.downloadProof(+course_id, employee_id);
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
             res.setHeader('Content-Type', mimeType);
             res.download(dir, filename, err => {
@@ -92,11 +92,11 @@ export class CourseController {
         }
     }
 
-    public getByUser = async (req: Request, res: Response, next: NextFunction) => {
-        const { user_id } = req.params;
+    public getByEmployee = async (req: Request, res: Response, next: NextFunction) => {
+        const { employee_id } = req.params;
         const pagination = plainToInstance(QueryRelationsDTO, req.query);
         try {
-            const [courses, total] = await this.courseService.getByUser(user_id, pagination)
+            const [courses, total] = await this.courseService.getByEmployee(employee_id, pagination)
             res.json({
                 data: courses,
                 total
@@ -121,9 +121,9 @@ export class CourseController {
     }
 
     public deleteUser = async (req: Request, res: Response, next: NextFunction) => {
-        const { course_id, user_id } = req.params;
+        const { course_id, employee_id } = req.params;
         try {
-            const response = await this.courseService.deleteUser(+course_id, user_id);
+            const response = await this.courseService.deleteUser(+course_id, employee_id);
             if (!response) throw 'Error al eliminar el usuario del curso';
             res.json({
                 message: 'Usuario eliminado del curso'

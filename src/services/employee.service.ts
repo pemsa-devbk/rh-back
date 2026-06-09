@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmSync } from "fs";
+import { existsSync, mkdirSync, renameSync, rmSync } from "fs";
 import { appDataSource } from "../db/dataBase";
 import { Employee } from "../db/entities/employee.entity";
 import { CreateEmployeeDTO } from "../Dto/user/createEmployee.dto";
@@ -16,6 +16,7 @@ import { MedicalData } from "../db/entities/medical_data.entity";
 import { PaginationDto } from "../Dto/pagination.dto";
 import { Like } from "typeorm";
 import { CustomError } from "../utils/error";
+import { UpdateEmployeeDTO } from "../Dto/user/updateEmployee.dto";
 
 enum EmployeeQueryContext {
     FROM_ENTERPRISE = 'FROM_ENTERPRISE', // Desde /enterprises/:id/employees -> Office + department + area + position + employee
@@ -89,18 +90,37 @@ export class EmployeeService {
         return [employees, total];
     }
 
-    public async getOne(user_id: string) {
-        return await this.findOneOrFail(user_id);
+    public async getOne(employee_id: string) {
+        return await this.getQuery().where('employee.user_id = :employee_id', {employee_id}).getRawOne();
     }
 
-    public async update(user_id: string) {
-        const user = await this.findOneOrFail(user_id);
-        return { ...user };
+    public async update(employee_id: string, updateDTO: UpdateEmployeeDTO, userSession: User) {
+        const { user_id, name, ...employeeDTO } = updateDTO;
+        await this.findOneOrFail(employee_id);
+        await this.repository.manager.transaction(async (transactionalEntityManager) => {
+            if (!existsSync(this.dir)) mkdirSync(this.dir);
+            
+            await transactionalEntityManager.update(User, { user_id: employee_id }, { name });
+            await transactionalEntityManager.update(Employee, {user_id: employee_id}, { ...employeeDTO });
+
+            // * Crear el movimiento
+            await transactionalEntityManager.insert(Binnacle, {
+                modified_user_id: employee_id,
+                modifier_user_id: userSession.user_id,
+                type: ValidStateMov.edicion
+            });
+
+            // const pathUser = join(this.dir, employee_id);
+            // // * verificar si existe y cambio numero de empleado
+            // if (existsSync(pathUser) && employee_id !== user_id) renameSync(pathUser, join(this.dir, user_id));
+
+        });
+        return this.getOne(employee_id);
     }
 
-    public async delete(user_id: string) {
-        const user = await this.findOneOrFail(user_id);
-        await this.repository.delete({ user_id });
+    public async delete(employee_id: string) {
+        const user = await this.findOneOrFail(employee_id);
+        await this.repository.delete({ user_id: employee_id });
         return user;
     }
 
@@ -184,11 +204,14 @@ export class EmployeeService {
 
     private getQuery(context: EmployeeQueryContext = EmployeeQueryContext.FROM_GENERAL) {
         const query = this.repository.createQueryBuilder('employee')
-            .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.birthdate as birthdate', 'employee.curp as curp', 'employee.status as status', 'employee.rfc as rfc', 'employee.cuip as cuip', 'employee.num_children as num_children', 'employee.vacation_days as vacation_days', 'employee.boss_id as boss_id', 'employee.have_uniform as have_uniform', 'employee.num_infonavit as num_infonavit', 'employee.marital_status as marital_status', 'employee.place_registration as place_registration', 'employee.salary as salary', 'employee.cp_csf as cp_csf', 'employee.date_entry as date_entry', 'employee.position_id as position_id'])
+            .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.birthdate as birthdate', 'employee.curp as curp', 'employee.status as status', 'employee.rfc as rfc', 'employee.cuip as cuip', 'employee.num_children as num_children', 'employee.vacation_days as vacation_days', 'employee.boss_id as boss_id', 'employee.have_uniform as have_uniform', 'employee.num_infonavit as num_infonavit', 'employee.marital_status as marital_status', 'employee.place_registration as place_registration', 'employee.salary as salary', 'employee.cp_csf as cp_csf', 'employee.date_entry as date_entry', 'employee.position_id as position_id', 'employee.email as email', 'employee.cell_phone as cell_phone', 'employee.have_alimony as have_alimony', 'employee.cred_fonacot as cred_fonacot'])
             .leftJoin('employee.user', 'user')
+            .leftJoin('employee.boss', 'boss')
+            .leftJoin('boss.user', 'boss_user')
             .addSelect('user.name', 'name')
             .addSelect('user.update_at', 'update_at')
             .addSelect('user.deleted_at', 'deleted_at')
+            .addSelect('boss_user.name', 'boss_name')
         switch (context) {
             case EmployeeQueryContext.FROM_GENERAL:
                 // devolver enterprise, office, department, area, position
@@ -255,10 +278,11 @@ export class EmployeeService {
         return query;
 
     }
+    
 
-    private async findOneOrFail(user_id: string) {
+    private async findOneOrFail(employee_id: string) {
         const user = await this.getQuery(EmployeeQueryContext.FROM_AREA)
-            .where('employee.user_id = :user_id', { user_id })
+            .where('employee.user_id = :employee_id', { employee_id })
             .getRawOne();
         if (!user) throw new CustomError("Empleado no existente", 404);
         return user;

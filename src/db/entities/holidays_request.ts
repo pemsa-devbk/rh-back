@@ -20,7 +20,7 @@ export class HolidayRequest {
     created_at: Date;
 
     @Column({ type: 'varchar', length: 5 })
-    user_id: string;
+    employee_id: string;
 
     // * relations
     @OneToMany(
@@ -34,7 +34,7 @@ export class HolidayRequest {
         (employee) => employee.holidays,
         { onDelete: 'CASCADE' }
     )
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'employee_id' })
     employee: Employee;
 
 }

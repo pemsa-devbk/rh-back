@@ -12,6 +12,24 @@ export class ConfigService {
         private readonly holidaysConfigrepository = appDataSource.getRepository(HolidaysConfig)
     ) { }
 
+    // * For Special users
+    public assignUser(assigndDto: AssignUserDto) {
+        const { key, user_id } = assigndDto;
+        return this.configRepository.update({ key }, { user_id });
+    }
+
+    public getSystemConfiguration() {
+        return this.configRepository.createQueryBuilder('system')
+            .select(['system.key as "key", system.description as description, system.user_id as user_id'])
+            .leftJoin('system.employee', 'employee')
+            .leftJoin('employee.user', 'user')
+            .addSelect(['user.name'])
+            .getRawMany();
+    }
+
+    // * For holidays config
+
+
     public getHolidaysConfig(){
         return this.holidaysConfigrepository.find();
     }
@@ -27,17 +45,7 @@ export class ConfigService {
         return this.holidaysConfigrepository.delete({holiday_config_id: id});
     }
 
-    public assignUser(assigndDto: AssignUserDto) {
-        const { key, user_id } = assigndDto;
-        return this.configRepository.update({ key }, { user_id });
-    }
-
-    public getSystemConfiguration() {
-        return this.configRepository.createQueryBuilder('system')
-            .leftJoin('system.user', 'user')
-            .addSelect(['user.user_id', 'user.name'])
-            .getMany();
-    }
+    
 
     public getRoles() {
         return [

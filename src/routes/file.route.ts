@@ -28,7 +28,7 @@ export class FileRoute {
         this.router.patch('/files/:file_id/status', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.changeStatus);
 
         // * rutas relacionada
-        this.router.post('/files/:file_id/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UploadFileDTO)], this.controller.uploadForUser);
+        this.router.post('/files/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UploadFileDTO)], this.controller.uploadForUser);
         this.router.get('/files/:file_id/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getFileUser);
         // * New Routes
 

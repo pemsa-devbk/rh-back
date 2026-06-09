@@ -20,5 +20,5 @@ export class Course {
         () => CourseEmployee,
         (courseEmployee) => courseEmployee.course
     )
-    courseUsers: CourseEmployee[];
+    courseEmployee: CourseEmployee[];
 }

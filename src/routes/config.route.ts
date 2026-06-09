@@ -19,12 +19,13 @@ export class ConfigRoute {
     private initialize(){
         this.router.get('/configuration/special-users', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.getConfiguration);
         this.router.patch('/configuration/update-user', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(AssignUserDto)], this.configController.assignUser);
+
         this.router.get('/configuration/roles', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.getRoles);
 
-        this.router.get('/configuration/holiday', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.getConfigHoliday);
-        this.router.post('/configuration/holiday', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateConfigDto)], this.configController.createConfigHoliday);
-        this.router.patch('/configuration/holiday/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateConfigDto)], this.configController.updateConfig);
-        this.router.delete('/configuration/holiday/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.deleteConfig);
-
+        this.router.get('/configuration/holidays', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.getConfigHoliday);
+        this.router.post('/configuration/holidays', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateConfigDto)], this.configController.createConfigHoliday);
+        this.router.patch('/configuration/holidays/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateConfigDto)], this.configController.updateConfig);
+        this.router.delete('/configuration/holidays/:id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.configController.deleteConfig);
+        
     }
 }

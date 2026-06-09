@@ -14,25 +14,23 @@ import { Like } from "typeorm";
 import { CustomError } from "../utils/error";
 
 export class EnterpriseService {
-    private testUser = { name: 'Nombre Del Usuario', phone: '222 141 12 30', ext: '112-114', cell_phone: '222 240 66 48', position: { name: 'Puesto' } };
+    private testUser = { name: 'Nombre Del Usuario Para ponerlo en el texto', phone: '222 141 12 30', ext: '112-114', cell_phone: '222 240 66 48', position: { name: 'Puesto' } };
 
     constructor(
         private readonly enterpriseRepository = appDataSource.getRepository(Enterprise),
         private readonly signatureRepository = appDataSource.getRepository(Signature)
     ) { }
 
-    // TODO: Meter en una transaccion
-    public async create(createDto: CreateEnterpriseDTO, logo: Express.Multer.File) {
-        const enterprise = await this.enterpriseRepository.save({
-            ...createDto
+    public async create(createDto: CreateEnterpriseDTO) {
+        const {signature, ...enterpriseDTO} = createDto;
+        return this.enterpriseRepository.manager.transaction( async(transactionalEntityManager) => {
+            // * Crear la empresa
+            const enterprise = await transactionalEntityManager.save(Enterprise, enterpriseDTO);
+            // * Crear la firma
+            await transactionalEntityManager.insert(Signature, {...signature, enterprise_id: enterprise.enterprise_id});
+            return enterprise;
         });
-        const dir = join(__dirname, "..", "..", "uploads", "enterprises", enterprise.enterprise_id);
-        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-        const validaExten = logo.originalname.split('.');
-        if (validaExten.length < 2) throw "Archivo no valido"
-        const extenArch = validaExten.pop();
-        writeFileSync(`${dir}/${logo.fieldname}.${extenArch}`, logo.buffer);
-        return enterprise;
+        
     }
 
     public async getAll(pagination: QueryRelationsDTO) {
@@ -69,36 +67,27 @@ export class EnterpriseService {
     }
 
     // * Signature
-    public async previewSignature(enterprise_id: string, signatureDto: CreateSignatureDto) {
-        const enterprise = await this.getOne(enterprise_id);
-        return createSignature(this.testUser, enterprise, signatureDto);
+    public async previewSignature(dto: CreateEnterpriseDTO) {
+        return createSignature(this.testUser, dto);
     }
 
-    public async createSignature(enterprise_id: string, signatureDto: CreateSignatureDto) {
-        await this.getOne(enterprise_id);
-        return this.signatureRepository.insert({
-            ...signatureDto,
-            enterprise_id
-        })
-    }
-
-    public async updateSignature(signature_id: string, signatureDto: UpdateSignatureDto) {
-        const signature = await this.getSignature(signature_id);
-        await this.signatureRepository.update({ signature_id }, signatureDto);
+    public async updateSignature(enterprise_id: string, signatureDto: UpdateSignatureDto) {
+        const signature = await this.signatureRepository.findOneBy({enterprise_id});
+        if(!signature) throw new CustomError('Firma no reconocida, comuniquese con un administrador', 400)
+        await this.signatureRepository.update({ enterprise_id }, signatureDto);
         return { ...signature, ...signatureDto };
     }
 
     public async newSignature(enterprise_id: string, dataSignature: NewSignatureDto) {
-        const enterprise = await this.getOne(enterprise_id);
-        const signature = await this.signatureRepository.findOneBy({ enterprise_id: enterprise.enterprise_id });
-        if (!signature) throw "Aun no hay firma establecida";
+        const enterprise = await this.getEnterpriseWithSignature(enterprise_id);
+        if (!enterprise) throw "Aun no hay firma establecida";
         const dataUser = { ...dataSignature, position: { name: dataSignature.position } };
-        return createSignature(dataUser, enterprise, signature);
+        return createSignature(dataUser, enterprise);
     }
 
-    public async getSignature(signature_id: string) {
-        const signature = await this.signatureRepository.findOneBy({ signature_id });
-        if (!signature) throw "No existe la firma";
+    public async getSignature(enterprise_id: string, dto: CreateSignatureDto) {
+        const signature = await this.signatureRepository.findOneBy({enterprise_id});
+        if(!signature) throw new CustomError('No existe firma asociada', 400);
         return signature;
     }
 
@@ -120,6 +109,12 @@ export class EnterpriseService {
             .groupBy("enterprise.enterprise_id").addGroupBy("enterprise.name").addGroupBy("enterprise.address").addGroupBy('signature.signature_id')
 
         return query;
+    }
+    private getEnterpriseWithSignature(enterprise_id: string){
+        return this.enterpriseRepository.findOne({
+            where: {enterprise_id},
+            relations: {signature: true}
+        });
     }
 
     private async findOneOrFail(enterprise_id: string){

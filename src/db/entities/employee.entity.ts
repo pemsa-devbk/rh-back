@@ -62,31 +62,32 @@ export class Employee {
     })
     num_children: number;
 
+    // TODO Quitar nullable de vacations_days boss_id, have_uniform, maritial_sttaus, place_registration, salary
     @Column({
         type: 'smallint',
-        default: 0
+        default: 0, nullable: true
     })
     vacation_days: number;
 
     @Column({ nullable: true, type: 'varchar', length: 5 })
     boss_id: string;
 
-    @Column({ type: 'bit', default: false })
+    @Column({ type: 'bit', default: false, nullable: true })
     have_uniform: boolean;
 
     @Column({ type: 'varchar', nullable: true, length: 10 })
     num_infonavit: string;
 
-    @Column({ type: 'tinyint' })
+    @Column({ type: 'tinyint', nullable: true })
     marital_status: number;
 
-    @Column({ type: 'varchar', length: 200 })
+    @Column({ type: 'varchar', length: 200, nullable: true })
     place_registration: string;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'int', nullable: true })
     salary: number;
 
-    @Column({ type: 'char', length: 5 })
+    @Column({ type: 'char', length: 5, nullable: true })
     cp_csf: string; // Codigo postal de constancia de situacion fiscal 
 
     @Column({
@@ -96,6 +97,21 @@ export class Employee {
 
     @Column()
     position_id: number;
+
+    // * New columns
+    // TODO quitar nullable excepto cell_phone y cred_fonacot
+    @Column({type: 'varchar', length: 254, nullable: true })
+    email: string;
+
+    @Column({ type: 'varchar', length: 10, nullable: true })
+    cell_phone: string;
+
+    @Column({type: 'bit', default: false, nullable: true})
+    have_alimony: boolean;
+
+    @Column({ type: 'varchar', nullable: true, length: 10 })
+    cred_fonacot: string;
+
 
     // * Relaciones:
 

@@ -23,9 +23,9 @@ export class ContactRoute {
     }
 
     private initialize() {
-        this.router.post('/users/:user_id/contacts', [authentication, validationMiddleware(CreateContactDTO), autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.create);
-        this.router.get('/users/:user_id/contacts', [authentication, autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.getByUser)
-        this.router.patch('/users/:user_id/contacts/:contact_id', [authentication, validationMiddleware(UpDateContactDTO), autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.update)
-        this.router.delete('/users/:user_id/contacts/:contact_id', [authentication, autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN])], this.contactController.delete)
+        this.router.post('/employees/:employee_id/contacts', [authentication, validationMiddleware(CreateContactDTO), autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.create);
+        this.router.get('/employees/:employee_id/contacts', [authentication, autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.getByUser)
+        this.router.patch('/employees/:employee_id/contacts/:contact_id', [authentication, validationMiddleware(UpDateContactDTO), autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN, validRoles.MANAGER])], this.contactController.update)
+        this.router.delete('/employees/:employee_id/contacts/:contact_id', [authentication, autorizationCheck([validRoles.SUPER_USER, validRoles.ADMIN])], this.contactController.delete)
     }
 }

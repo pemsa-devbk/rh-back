@@ -11,7 +11,7 @@ export class ContactService {
 
     public async create(employee_id: string, contactsDto: CreateContactDTO) {
         const contacts = this.contactRepository.create(contactsDto.contacts.map(contact => ({
-            ...contact, user_id: employee_id
+            ...contact, employee_id
         })));
         await this.contactRepository.save(contacts);
         return contacts;

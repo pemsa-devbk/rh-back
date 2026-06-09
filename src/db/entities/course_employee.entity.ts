@@ -9,14 +9,14 @@ export class CourseEmployee{
     course_id: number;
     
     @PrimaryColumn({type: 'varchar', length: 5})
-    user_id: string;
+    employee_id: string;
 
     @Column({ type: 'bit', default: false})
     have_proof: boolean;
 
     @ManyToOne(
         () => Course,
-        (course) => course.courseUsers,
+        (course) => course.courseEmployee,
         {onDelete: 'CASCADE'}
     )
     @JoinColumn({name: 'course_id'})
@@ -27,6 +27,6 @@ export class CourseEmployee{
         (employee) => employee,
         {onDelete: 'CASCADE'}
     )
-    @JoinColumn({name: 'user_id'})
+    @JoinColumn({name: 'employee_id'})
     employee: Employee;
 }

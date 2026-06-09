@@ -110,9 +110,9 @@ export class EmployeeController{
 
 
     public getOne = async(req:Request, res: Response, next: NextFunction) => {
-        const {user_id} = req.params;
+        const {employee_id} = req.params;
         try {
-            const employee = await this.service.getOne(user_id);
+            const employee = await this.service.getOne(employee_id);
             res.json(employee)
         } catch (error) {
             next(error);
@@ -120,10 +120,10 @@ export class EmployeeController{
     }
 
     public update = async(req:Request, res: Response, next: NextFunction) => {
-        const {user_id} = req.params;
+        const {employee_id} = req.params;
         const updateDTO = req.body;
         try {
-            const employee = await this.service.update(user_id);
+            const employee = await this.service.update(employee_id, updateDTO, req.user);
             res.json(employee);
         } catch (error) {
             next(error);

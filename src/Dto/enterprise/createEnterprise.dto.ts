@@ -1,4 +1,6 @@
-import { IsString } from "class-validator";
+import { IsString, ValidateNested } from "class-validator";
+import { CreateSignatureDto } from "./createSignature.dto";
+import { Type } from "class-transformer";
 
 export class CreateEnterpriseDTO{
     @IsString()
@@ -6,5 +8,9 @@ export class CreateEnterpriseDTO{
     
     @IsString()
     address: string;
+
+    @ValidateNested()
+    @Type( () => CreateSignatureDto)
+    signature: CreateSignatureDto;
 
 }

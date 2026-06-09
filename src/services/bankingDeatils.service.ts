@@ -19,11 +19,17 @@ export class BankingDetailsService{
         const bankingDetail = await this.getOne(employee_id);
         if(!bankingDetail) throw new CustomError("No existe registro bancario, primero creé uno", 400);
         await this.repository.update({employee_id}, updateDTO);
-        return {...bankingDetail, ...updateDTO};
+        return await this.getOne(employee_id);
+        // return {...bankingDetail, ...updateDTO};
 
     }
 
     public getOne(employee_id: string){
-        return this.repository.findOneBy({employee_id});
+        return this.repository.createQueryBuilder('banking')
+            .select(['banking.CLABE as CLABE', 'banking.account_number as account_number', 'banking.employee_id as employee_id', 'banking.bank_id as bank_id'])
+            .leftJoin('banking.bank', 'bank')
+            .addSelect('bank.name', 'bank_name')
+            .where('banking.employee_id = :employee_id', {employee_id}).getRawOne()
+        // return this.repository.findOneBy({employee_id});
     }
 }

@@ -21,7 +21,7 @@ export class Contact {
     @Column({ type: 'varchar', length: 5 })
     employee_id: string;
 
-    //Relaciones con el usuario:
+    //* Relaciones 
     @ManyToOne(
         () => Employee,
         (employee) => employee.contacts,

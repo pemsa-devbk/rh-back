@@ -1,7 +1,7 @@
 import { createCanvas, loadImage, registerFont } from "canvas";
-import { Enterprise } from "../db/entities/enterprise.entity";
-import { CreateSignatureDto } from "../Dto/enterprise/createSignature.dto";
 import { join } from 'path';
+import { CreateEnterpriseDTO } from "../Dto/enterprise/createEnterprise.dto";
+
 
 interface UserToSignature {
     name: string;
@@ -10,7 +10,10 @@ interface UserToSignature {
     cell_phone?: string;
     position?: { name: string }
 }
-export const createSignature = async (user: UserToSignature, enterprice: Enterprise, signature: CreateSignatureDto) => {
+
+
+export const createSignature = async (user: UserToSignature, configSignature: CreateEnterpriseDTO) => {
+    const { signature, ...enterprise } = configSignature;
     const canvas = createCanvas(600, 300);
     const ctx = canvas.getContext('2d');
     const path = join(__dirname, '../../public/fonts/bank-gothic-light-bt.ttf');
@@ -19,7 +22,7 @@ export const createSignature = async (user: UserToSignature, enterprice: Enterpr
     let background = await loadImage(signature.background);
     ctx.drawImage(background, 0, 0, 600, 300);
     if (signature.vertical_text) {
-        const maxHeight = 180; 
+        const maxHeight = 180;
         const minFontSize = 20;
         const maxFontSize = 47;
         let fontSize = maxFontSize;
@@ -40,25 +43,25 @@ export const createSignature = async (user: UserToSignature, enterprice: Enterpr
         ctx.restore();
     }
     // * Fondos
-    if(signature.first_color_first_section || signature.second_color_first_section){
+    if (signature.first_color_first_section || signature.second_color_first_section) {
         const grad = ctx.createLinearGradient(0, 0, 400, 0);
         grad.addColorStop(0, signature.first_color_first_section || signature.second_color_first_section);   // inicio
         grad.addColorStop(1, signature.second_color_first_section || signature.first_color_first_section);  // final
         ctx.fillStyle = grad;
         ctx.fillRect(0, 200, 600, 15);
     }
-    ctx.strokeStyle = "#5f5f5fff";  
+    ctx.strokeStyle = "#5f5f5fff";
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 200, 600, 15); // x, y, ancho, alto
 
-    if(signature.first_color_third_section || signature.second_color_third_section){
+    if (signature.first_color_third_section || signature.second_color_third_section) {
         const radial = ctx.createRadialGradient(300, 270, 10, 300, 270, 300);
         radial.addColorStop(0, signature.first_color_third_section || signature.second_color_third_section);    // centro
         radial.addColorStop(1, signature.second_color_third_section || signature.first_color_third_section); // borde
         ctx.fillStyle = radial;
         roundRect(ctx, 0.5, 245, 599, 54, 20); // último parámetro = radio
         ctx.fill();
-    }else{
+    } else {
         roundRect(ctx, 0.5, 245, 599, 54, 20); // último parámetro = radio
     }
     ctx.strokeStyle = "#5f5f5fff";
@@ -73,18 +76,19 @@ export const createSignature = async (user: UserToSignature, enterprice: Enterpr
     ctx.font = "bold 16px BankGothic";
     ctx.fillStyle = signature.color_text;
     let text = user.name;
+    drawMultilineText(ctx, text, 200, 30, 350, { align: 'center', lineHeight: 10 });
     let textWidth = ctx.measureText(text).width;
     let centerX = 200 + (550 - 200) / 2 - textWidth / 2;
-    ctx.fillText(text, centerX, 30);
 
     ctx.font = "normal 10px BankGothic";
     text = user.position?.name || '';
-    textWidth = ctx.measureText(text).width;
-    centerX = 200 + (550 - 200) / 2 - textWidth / 2;
-    ctx.fillText(text, centerX, 45);
+    drawMultilineText(ctx, text, 200, 50, 350, { align: 'center' });
+
+    
     ctx.font = "normal 10px BankGothic";
-    ctx.fillText(enterprice.address, 220, 80);
-    // ctx.fillText('C.P.72420, PUEBLA, PUE.', 220, 93);
+    drawMultilineText(ctx, enterprise.address, 220, 80, 300, { align: 'left', lineHeight: 15 });
+
+    
     ctx.font = "bold 12px BankGothic";
     if (user.phone && user.ext) {
         ctx.fillText(`TEL: ${user.phone}`, 220, 120);
@@ -100,7 +104,8 @@ export const createSignature = async (user: UserToSignature, enterprice: Enterpr
     }
     ctx.fillStyle = signature.color_text;
     ctx.font = "normal 10px BankGothic";
-    ctx.fillText(enterprice.name, 220, 175);
+    drawMultilineText(ctx, enterprise.name, 220, 175, 300, { align: 'left', lineHeight: 10 });
+    // ctx.fillText(enterprise.name, 220, 175);
 
 
     // ? Secciones finales
@@ -111,9 +116,18 @@ export const createSignature = async (user: UserToSignature, enterprice: Enterpr
     centerX = 600 / 2 - textWidth / 2;
     ctx.fillText(text, centerX, 210);
     // ? Parte 2
-    paintText(ctx, signature.text_second_section, 230, 10)
+    // paintText(ctx, signature.text_second_section, 230, 10)
+    drawMultilineText(ctx, signature.text_second_section, 100, 228, 400, { align: 'center', lineHeight: 10 });
+
     // ? Parte 3 
-    paintText(ctx, signature.text_third_section, 260, 10)
+    // ctx.save();
+    // ctx.strokeStyle = '#f00';
+    // ctx.strokeRect(60, 240, 480, 100);
+    // ctx.restore();
+    
+    drawMultilineText(ctx, signature.text_third_section, 60, 260, 480, { align: 'center', lineHeight: 10 });
+
+    // paintText(ctx, signature.text_third_section, 260, 10)
 
     return canvas.toBuffer('image/png');
 }
@@ -135,4 +149,72 @@ const paintText = (ctx: any, originaltext: string, y: number, sum: number) => {
         const centerX = 600 / 2 - textWidth / 2;
         ctx.fillText(text, centerX, (sum * idx) + y);
     })
+}
+
+const drawMultilineText = (ctx: any, text: string, x: number, y: number, maxWidth: number, options: {
+    lineHeight?: number;
+    align?: 'left' | 'center' | 'right';
+    verticalAlign?: 'top' | 'middle' | 'bottom'
+}) => {
+    const {
+        lineHeight = 25,
+        align = 'left',      // 'left', 'center', 'right'
+        verticalAlign = 'top' // 'top', 'middle', 'bottom'
+    } = options;
+
+    // Dividir en líneas
+    const lines = [];
+    const words = text.split(' ');
+    let currentLine = words[0] || '';
+
+    for (let i = 1; i < words.length; i++) {
+        const testLine = currentLine + ' ' + words[i];
+        const metrics = ctx.measureText(testLine);
+
+        if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = words[i];
+        } else {
+            currentLine = testLine;
+        }
+    }
+    lines.push(currentLine);
+
+    // Calcular posición Y según verticalAlign
+    const totalHeight = lines.length * lineHeight;
+    let startY = y;
+
+    switch (verticalAlign) {
+        case 'middle':
+            startY = y - totalHeight / 2;
+            break;
+        case 'bottom':
+            startY = y - totalHeight;
+            break;
+    }
+
+    // Dibujar cada línea con alineación horizontal
+    lines.forEach((line, index) => {
+        let xPos = x;
+        const lineWidth = ctx.measureText(line).width;
+
+        switch (align) {
+            case 'center':
+                xPos = x + (maxWidth - lineWidth) / 2;
+                break;
+            case 'right':
+                xPos = x + maxWidth - lineWidth;
+                break;
+            case 'left':
+            default:
+                xPos = x;
+        }
+
+        ctx.fillText(line, xPos, startY + (index * lineHeight));
+    });
+
+    return {
+        lineCount: lines.length,
+        totalHeight: totalHeight
+    };
 }

@@ -9,10 +9,11 @@ import { CustomError } from '../utils/error';
 import { SearchFile } from '../Dto/file/SearchFile.dto';
 import { ColumnTypeMap } from '../types/search_type';
 import { applySearch } from '../utils/applySearch';
-import { FileArray } from 'express-fileupload';
+import fileUpload, { FileArray } from 'express-fileupload';
 import { EmployeeFiles } from '../db/entities/employee_files.entity';
 import { UploadFileDTO } from '../Dto/file/uploadFile.dto';
 import { User } from '../db/entities/user.entity';
+import { In } from 'typeorm';
 
 const FILE_COLUMNS_TYPES: ColumnTypeMap<File> = {
     // * entidad principal
@@ -52,9 +53,11 @@ export class FileService {
     }
 
     public async getAll(searchDTO: SearchFile) {
+
         const { orderBy = 'created_at', orderDirection } = searchDTO;
         const query = this.repository.createQueryBuilder('file');
         applySearch(query, searchDTO, FILE_COLUMNS_TYPES);
+        query.andWhere('file.can_removed = :can_removed', { can_removed: true })
         const orderConfig = FILE_COLUMNS_TYPES[orderBy];
         const orderField = orderConfig
             ? `${orderConfig.alias}.${orderBy}` // columna registrada en el mapa
@@ -73,26 +76,30 @@ export class FileService {
         return `Configuración de archivo eliminado`;
     }
 
-    public async uploadFileUser(file_id: number, employee_id: string, files: FileArray, uploadDTO: UploadFileDTO, user: User) {
+    public async uploadFileUser(employee_id: string, files: FileArray, uploadDTO: UploadFileDTO, user: User) {
         const dir = normalize(join(UPLOADS_DIR_USERS, employee_id, 'docs'));
         if (!dir.startsWith(UPLOADS_DIR_USERS)) throw "Directorio no permitirdo";
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        const keys = Object.keys(files);
+        if (keys.length > 1) throw new CustomError('Solo se puede subir un archivo a la vez', 400);
 
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
-            const fileConfig = await transactionalEntityManager.findOneBy(File, { file_id });
-            if (!fileConfig) throw new CustomError('Configuración de archivo no existente', 400);
-            if (!fileConfig.is_active) throw new CustomError('El archivo esta marcado como inactivo, no se podrá subir hasta activar el archivo', 400);
-            if (!files[fileConfig.key]) throw new CustomError('Clave no valida para el archivo', 400);
+            const fileConfig = await transactionalEntityManager.findOneBy(File, { key: keys[0] });
 
-            const simpleFile = files[fileConfig.key];
+            if (!fileConfig) throw new CustomError('No hay coincidencia del archivo a subir', 400);
 
-            if (Array.isArray(simpleFile)) throw new CustomError('Solo se acepta un archivo', 400);
-            if (!fileConfig.valid_mime_types.includes(simpleFile.mimetype)) throw new CustomError('Tipo de archivo no soportado', 400);
-            if ((fileConfig.max_size * 1000000) < simpleFile.size) throw new CustomError('El tamaño de archivo excede el limite permitido', 400);
+            const simpleFile = files[keys[0]];
 
-            //* Guardar en employeeFile
-            const userFile = await transactionalEntityManager.findOneBy(EmployeeFiles, { employee_id, file_id });
-            if (!userFile) await transactionalEntityManager.insert(EmployeeFiles, { file_id, employee_id, uploaded_by: user.user_id, ...uploadDTO });
+            if (!fileConfig.is_active) throw new CustomError(`El archivo ${fileConfig.name} esta marcado como inactivo`, 400);
+
+            if (Array.isArray(simpleFile)) throw new CustomError(`Solo se acepta un archivo para ${fileConfig.name}`, 400);
+            if (!fileConfig.valid_mime_types.includes(simpleFile.mimetype)) throw new CustomError(`Tipo de archivo no soportado para ${fileConfig.name}`, 400);
+            if ((fileConfig.max_size * 1000000) < simpleFile.size) throw new CustomError(`El tamaño de archivo excede el limite permitido para ${fileConfig.name}`, 400);
+
+
+            // //* Guardar en employeeFile
+            const userFile = await transactionalEntityManager.findOneBy(EmployeeFiles, { employee_id, file_id: fileConfig.file_id });
+            if (!userFile) await transactionalEntityManager.insert(EmployeeFiles, { file_id: fileConfig.file_id, employee_id, uploaded_by: user.user_id, ...uploadDTO });
             else await transactionalEntityManager.update(EmployeeFiles, userFile ,{ uploaded_by: user.user_id, ...uploadDTO });
 
             const ext = mime.extension(simpleFile.mimetype);
@@ -101,7 +108,7 @@ export class FileService {
             this.removeFile(dir, relativeName);
             await simpleFile.mv(uploadPath);
 
-            return `Archivo ${fileConfig.name} subido correcatmente`;
+            return `Archivo subidos correctamente`;
         });
 
     }

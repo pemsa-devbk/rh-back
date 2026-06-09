@@ -6,7 +6,8 @@ export class MedicalData {
 
     @Column({
         type: 'varchar',
-        length: 3
+        length: 3,
+        nullable: true
     })
     blood_type: string;
 

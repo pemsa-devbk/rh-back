@@ -2,6 +2,7 @@ import { IsEnum, IsOptional, IsString, Length } from "class-validator";
 import { BloodType } from "../../../types/enums/blood";
 
 export class MedicalDataDTO {
+    @IsOptional()
     @IsEnum(BloodType)
     blood_type: string;
 

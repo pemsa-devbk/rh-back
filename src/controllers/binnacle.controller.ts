@@ -7,11 +7,24 @@ export class BinnacleController {
     constructor(
         private readonly binnacleService = new BinncacleService()
     ){}
-    public getByUser = async(req: Request, res: Response, next: NextFunction) => {
+    public getByModified = async(req: Request, res: Response, next: NextFunction) => {
         const paginationDto = plainToInstance(PaginationDto, req.query);
         const {user_id} = req.params;
         try {
-            const [binnacle, total] = await this.binnacleService.getByUser(user_id, paginationDto);
+            const [binnacle, total] = await this.binnacleService.getByModified(user_id, paginationDto);
+            res.json({
+                data: binnacle, total
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    public getByModifier = async(req: Request, res: Response, next: NextFunction) => {
+        const paginationDto = plainToInstance(PaginationDto, req.query);
+        const {user_id} = req.params;
+        try {
+            const [binnacle, total] = await this.binnacleService.getByModifier(user_id, paginationDto);
             res.json({
                 data: binnacle, total
             })

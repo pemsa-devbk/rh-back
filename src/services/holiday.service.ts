@@ -1,6 +1,5 @@
 import { appDataSource } from "../db/dataBase";
 import { HolidayRequest } from "../db/entities/holidays_request";
-import { User } from "../db/entities/user.entity";
 import { CreateRequestHolidaysDto } from "../Dto/holidays/create_request.dto";
 import { StatusHoliday } from "../types/enums/status_holidays";
 import dayjs from '../utils/dayjs'
@@ -8,15 +7,19 @@ import { HolidayDays } from '../db/entities/holidays_days';
 import { Binnacle } from "../db/entities/binnacle.entity";
 import { ValidStateMov } from "../types/enums/validMov";
 import { join } from 'path';
-import { existsSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import jsPDF from "jspdf";
 import { SystemConfiguration } from "../db/entities/system_configuration";
 import { HolidaysConfig } from "../db/entities/holidays_config";
 import { PaginationDto } from "../Dto/pagination.dto";
 import { StatusUser } from "../types/enums/status_user";
-import { Between, EntityManager } from "typeorm";
+import { Between, EntityManager, Not } from "typeorm";
 import { Position } from "../db/entities/position.entity";
 import { Employee } from "../db/entities/employee.entity";
+import { CustomError } from "../utils/error";
+import { FileArray } from "express-fileupload";
+import mime from 'mime'
+
 
 interface TextRich {
     text: string;
@@ -32,40 +35,39 @@ interface TextRich {
  */
 // TODO 
 /**
- * 1. Al momento de crear las vacaciones se quitan los días del usuario?
  * 2. Se pueden cancelar todas las vacaciones excepto si ya fue cancelado
  * 3. Verificar documento de creación
  */
 export class HolidayService {
 
+    private dir = join(__dirname, "..", "..", "uploads", 'employees');
     constructor(
         private readonly holidayRequestRepository = appDataSource.getRepository(HolidayRequest),
         private readonly holidayConfigRepository = appDataSource.getRepository(HolidaysConfig)
     ) { }
 
-    public async create(user_id: string, modifier_id: string, createDto: CreateRequestHolidaysDto) {
+    public async create(employee_id: string, modifier_id: string, createDto: CreateRequestHolidaysDto) {
         const { days, comment } = createDto;
         const today = dayjs.tz();
         return await this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
-            const employee = await transactionalEntityManager.findOne(Employee, { where: { user_id }, relations: { position: true, boss: true, user: true } });
+            const employee = await transactionalEntityManager.findOne(Employee, { where: { user_id: employee_id }, relations: { position: true, boss: true, user: true } });
             if (!employee) throw 'Usuario no encontrado';
             // * Validar que no existan vacaciones cruzadas
             const sortedDates = days.map(d => dayjs.tz(d)).sort((a, b) => a.valueOf() - b.valueOf());
             const maxDate = sortedDates[sortedDates.length - 1];
             const crossHoliday = await transactionalEntityManager.findOne(HolidayRequest, {
-                where: { user_id, days: { date: Between(sortedDates[0].toDate(), maxDate.toDate()) } }
+                where: { employee_id, status: Not(StatusHoliday.cancelado), days: { date: Between(sortedDates[0].toDate(), maxDate.toDate()) } }
             });
             if (crossHoliday) throw 'Ya existe un registro de vacaciones entre las fechas solicitadas';
 
             let status = StatusHoliday.pendiente;
             // * Registro de vacaciones que ya pasaron
             if (today.isAfter(maxDate, 'date') || today.isSame(maxDate.add(1, 'day'), 'date')) status = StatusHoliday.finalizada;
-            // if (today.isSame(maxDate.add(1, 'day'), 'date') || today.isAfter(maxDate.add(1, 'day'), 'date'))  // * Son vacaciones anteriores, es decir ya han pasado
-            //     status = StatusHoliday.finalizada;
+
             // * Crear solicitud
-            await transactionalEntityManager.update(Employee, { user_id }, { vacation_days: (employee.vacation_days - days.length) })
+            await transactionalEntityManager.update(Employee, { user_id: employee_id }, { vacation_days: (employee.vacation_days - days.length) })
             const holydayRequest = transactionalEntityManager.create(HolidayRequest, {
-                user_id,
+                employee_id,
                 status,
                 comment
             });
@@ -78,11 +80,11 @@ export class HolidayService {
             })));
             await transactionalEntityManager.insert(HolidayDays, daysRequest);
             // * Bitacora
-            await transactionalEntityManager.insert(Binnacle, { modifier_user_id: modifier_id, modifiedUser: employee, type: ValidStateMov.vacaciones });
+            await transactionalEntityManager.insert(Binnacle, { modifier_user_id: modifier_id, modified_user_id: employee_id, type: ValidStateMov.vacaciones });
 
             holydayRequest.days = daysRequest;
             // * Crear documento
-            await this.createDoc(transactionalEntityManager, holydayRequest, employee);
+            // await this.createDoc(transactionalEntityManager, holydayRequest, employee);
             const othersText = this.formatVacationDates(daysRequest);
             return {
                 message: `Solicitud de vacaciones creada para la(s) fecha(s) ${othersText.text} del empleado ${employee.user.name}`,
@@ -91,13 +93,14 @@ export class HolidayService {
         })
     }
 
-    public async getHolidaybyEmployee(user_id: string, pagination: PaginationDto) {
+    public async getHolidaybyEmployee(employee_id: string, pagination: PaginationDto) {
         const { skip, take } = pagination;
         const [data, total] = await this.holidayRequestRepository.createQueryBuilder('holiday')
             .leftJoin('holiday.days', 'days')
             .addSelect(['days.date', 'days.holidays_days_id'])
-            .where('holiday.user_id = :user_id', { user_id })
+            .where('holiday.employee_id = :employee_id', { employee_id })
             .take(take).skip(skip).getManyAndCount();
+
         return [
             data.map(holiday => ({
                 ...holiday,
@@ -106,48 +109,62 @@ export class HolidayService {
         ];
     }
 
-    public async cancel(user_id: string, request_holiday_id: number) {
+    public async cancel(employee_id: string, request_holiday_id: number) {
         return this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
-            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { user_id, request_holiday_id }, relations: { days: true, employee: { user: true} } });
+            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { employee_id, request_holiday_id }, relations: { days: true, employee: { user: true } } });
             if (!holiday) throw 'No hay registro de vacaciones';
-            if (holiday.status === StatusHoliday.cancelado) throw "El registro ya ha sido cancelado";
-            await transactionalEntityManager.update(Employee, { user_id: holiday.user_id }, { vacation_days: (holiday.employee.vacation_days + holiday.days.length), status: StatusUser.activo });
+            if (holiday.status === StatusHoliday.cancelado) throw new CustomError("El registro ya ha sido cancelado", 400);
+            // TODO Se va a cambiar el status ?
+            await transactionalEntityManager.update(Employee, { user_id: employee_id }, { vacation_days: (holiday.employee.vacation_days + holiday.days.length), status: StatusUser.activo });
             await transactionalEntityManager.update(HolidayRequest, { request_holiday_id }, { status: StatusHoliday.cancelado });
+
             const othersText = this.formatVacationDates(holiday.days);
             return `Se cancelo la solicitud de vacaciones del usuario ${holiday.employee.user.name} para la(s) fecha(s) ${othersText.text}`;
         });
     }
 
-    public async getFormatHoliday(user_id: string, request_holiday_id: number): Promise<[string, Buffer]> {
+    public async uploadFormat(employee_id: string, request_holiday_id: number, files: FileArray) {
+        console.log(files);
 
-        const holiday = await this.holidayRequestRepository.findOne({ where: { request_holiday_id, user_id }, relations: { employee: {user: true}, days: true } })
-        if (!holiday) throw 'No hay registro de vacaciones';
-        const pathFile = join(__dirname, "..", "..", "uploads/users", user_id, "holidays", `${holiday.request_holiday_id}.pdf`);
-        if (!existsSync(pathFile)) throw "Archivo no existente";
-        const othersText = this.formatVacationDates(holiday.days);
-        return [`${holiday.employee.user.name} ${othersText.text}.pdf`, readFileSync(pathFile)];
-    }
-
-    public async uploadFormat(user_id: string, request_holiday_id: number, file: Express.Multer.File) {
+        const simpleFile = files['proof'];
+        if (Array.isArray(simpleFile)) throw new CustomError('Solo se acepta un archivo como comprobante', 400);
         return this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
-            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { request_holiday_id, user_id } });
+            const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { request_holiday_id, employee_id } });
             if (!holiday) throw 'No existe registro de vacaciones';
-            const pathFile = join(__dirname, "..", "..", "uploads/users", user_id, "holidays");
-            if (!existsSync(pathFile)) throw "Directorio no existente comuniquese con el administrador";
-            const fileToDelete = join(pathFile, `${request_holiday_id}.pdf`);
-            if (existsSync(fileToDelete)) rmSync(fileToDelete);
-            const validaExten = file.originalname.split('.');
+            const pathFiles = join(this.dir, employee_id, "holidays");
+            if (!existsSync(pathFiles)) throw "Directorio no existente comuniquese con el administrador";
+            const fileExist = readdirSync(pathFiles).find(file => file.startsWith(`HOLIDAY_${request_holiday_id}.`));
+            if (fileExist) rmSync(join(pathFiles, fileExist));
+
+            const validaExten = simpleFile.name.split('.');
             const extenArch = validaExten.pop();
-            await transactionalEntityManager.update(HolidayRequest, { request_holiday_id, user_id }, { have_format: true });
-            writeFileSync(join(pathFile, `${request_holiday_id}.${extenArch}`), file.buffer);
+            await transactionalEntityManager.update(HolidayRequest, { request_holiday_id, employee_id }, { have_format: true });
+            simpleFile.mv(join(pathFiles, `HOLIDAY_${request_holiday_id}.${extenArch}`));
             return 'Fomato actualizado';
         });
     }
 
+
+
+    public async getFormatHoliday(employee_id: string, request_holiday_id: number): Promise<[string, string, string]> {
+
+        const holiday = await this.holidayRequestRepository.findOne({ where: { request_holiday_id, employee_id }, relations: { employee: { user: true }, days: true } })
+        if (!holiday) throw 'No hay registro de vacaciones';
+        const pathFiles = join(this.dir, employee_id, "holidays");
+        if (!existsSync(pathFiles)) throw "Directorio no existente comuniquese con el administrador";
+        const fileExist = readdirSync(pathFiles).find(file => file.startsWith(`HOLIDAY_${request_holiday_id}.`));
+        if (!fileExist) throw "Archivo no existente";
+
+        const dirFile = join(pathFiles, fileExist);
+        const mimeType = mime.lookup(fileExist) || 'application/octet-stream';
+        // const othersText = this.formatVacationDates(holiday.days);
+        return [fileExist, dirFile, mimeType];
+    }
+
     private async createDoc(transactionalEntityManager: EntityManager, holiday: HolidayRequest, employee: Employee) {
 
-        const system = await transactionalEntityManager.find(SystemConfiguration, { relations: { employee: {user: true} } })
-        const position = await transactionalEntityManager.findOne(Position, { where: { position_id: employee.position_id }, relations: { area: { responsibleUser: {user: true} } } });
+        const system = await transactionalEntityManager.find(SystemConfiguration, { relations: { employee: { user: true } } })
+        const position = await transactionalEntityManager.findOne(Position, { where: { position_id: employee.position_id }, relations: { area: { responsibleUser: { user: true } } } });
         // * Validaciones de existencia
         if (!position.area.responsibleUser) throw 'El area no cuenta con un responsable';
 
@@ -310,7 +327,6 @@ export class HolidayService {
         const sameYear = minDate.year() === maxDate.year();
 
         let text = '';
-
         if (sortedDates.length === 1) {
             text = formatFull(minDate);
         } else if (sortedDates.length === 2) {
@@ -344,4 +360,5 @@ export class HolidayService {
             nextDate: nextDate
         };
     }
+
 }

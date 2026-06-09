@@ -5,6 +5,7 @@ import { validRoles } from "../types/enums/roles";
 import { validationMiddleware } from "../middlewares/validation.middleware";
 import { CreateEmployeeDTO } from "../Dto/user/createEmployee.dto";
 import { EmployeeController } from "../controllers/employee.controller";
+import { UpdateEmployeeDTO } from "../Dto/user/updateEmployee.dto";
 
 export class EmployeeRoute{
     constructor(
@@ -16,9 +17,9 @@ export class EmployeeRoute{
 
     private initialize(){
         this.router.post('/employees', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateEmployeeDTO)], this.controller.create);
-        this.router.get('/employees/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
-        this.router.delete('/employees/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
-        this.router.patch('/employees', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateEmployeeDTO)], this.controller.update)
+        this.router.get('/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
+        this.router.delete('/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
+        this.router.patch('/employees/:employee_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateEmployeeDTO)], this.controller.update)
         // TODO falta implementar
         this.router.put('/employees/:user_id/status', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
 

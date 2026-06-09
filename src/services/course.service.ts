@@ -8,6 +8,9 @@ import { QueryRelationsDTO } from "../Dto/query_relations.dto";
 import { join } from 'path';
 import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import mime from 'mime'
+import { FileArray } from "express-fileupload";
+import { CustomError } from "../utils/error";
+import { Like } from "typeorm";
 
 
 export class CourseService {
@@ -46,11 +49,11 @@ export class CourseService {
 
         return await query.getManyAndCount();
     }
-
+    // TODO Esta ruta no se ocupa en el front verificar uso y su respuesta ya que devuleve la relación de usuarios
     public async getById(course_id: number) {
         const course = await this.courseRepository.findOne({
             where: { course_id },
-            relations: { courseUsers: true }
+            relations: { courseEmployee: true }
         });
         if (!course) throw 'El curso solicitado no existe';
         return course;
@@ -59,12 +62,12 @@ export class CourseService {
     public async delete(course_id: number): Promise<Course> {
         const course = await this.getById(course_id);
         await this.courseRepository.delete({ course_id });
-        if (course.courseUsers.length > 0) {
+        if (course.courseEmployee.length > 0) {
             // ELiminar 
-            for (let index = 0; index < course.courseUsers.length; index++) {
-                if (course.courseUsers[index].have_proof) {
-                    const userDir = join(__dirname, "..", "..", 'uploads/users', course.courseUsers[index].user_id, 'courses');
-                    this.deleteFile(userDir, `${course.courseUsers[index].user_id}_${course.courseUsers[index].course_id}`);
+            for (let index = 0; index < course.courseEmployee.length; index++) {
+                if (course.courseEmployee[index].have_proof) {
+                    const userDir = join(__dirname, "..", "..", 'uploads/employees', course.courseEmployee[index].employee_id, 'courses');
+                    this.deleteFile(userDir, `${course.courseEmployee[index].employee_id}_${course.courseEmployee[index].course_id}`);
                 }
             }
         }
@@ -77,25 +80,28 @@ export class CourseService {
         return { ...course, ...updateDTO };
     }
 
-    public async uploadProof(course_id: number, user_id: string, file: Express.Multer.File) {
+    public async uploadProof(course_id: number, employee_id: string, files: FileArray) {
+        const file = files['proof'];
+        if(!file) throw new CustomError('Archivo no encontrado', 400);
+        if(Array.isArray(file)) throw new CustomError('Solo se admite un archivo como comprobante', 400);
         return this.courseUserRepository.manager.transaction(async (transactionalEntityManager) => {
-            const userCourse = await transactionalEntityManager.findOneBy(CourseEmployee, { course_id, user_id });
+            const userCourse = await transactionalEntityManager.findOneBy(CourseEmployee, { course_id, employee_id });
             if (!userCourse) throw 'No existe el registro solicitado';
-            const userDir = join(__dirname, "..", "..", 'uploads/users', user_id, 'courses');
+            const userDir = join(__dirname, "..", "..", 'uploads/employees', employee_id, 'courses');
             if (!existsSync(userDir)) mkdirSync(userDir, { recursive: true });
-            if (!userCourse.have_proof) await transactionalEntityManager.update(CourseEmployee, { course_id, user_id }, { have_proof: true });
-            this.deleteFile(userDir, `${user_id}_${course_id}`);
-            const ext = this.validateExt(file.originalname);
-            const filepath = join(userDir, `${user_id}_${course_id}.${ext}`);
-            writeFileSync(filepath, file.buffer);
+            if (!userCourse.have_proof) await transactionalEntityManager.update(CourseEmployee, { course_id, employee_id }, { have_proof: true });
+            this.deleteFile(userDir, `${employee_id}_${course_id}`);
+            const ext = this.validateExt(file.name);
+            const filepath = join(userDir, `${employee_id}_${course_id}.${ext}`);
+            writeFileSync(filepath, file.data);
             return true;
         })
     }
 
-    public downloadProof(course_id: number, user_id: string) {
-        const userDir = join(__dirname, "..", "..", 'uploads/users', user_id, 'courses');
+    public downloadProof(course_id: number, employee_id: string) {
+        const userDir = join(__dirname, "..", "..", 'uploads/employees', employee_id, 'courses');
         const proofs = readdirSync(userDir);
-        const file = proofs.find(proof => proof.includes(`${user_id}_${course_id}.`));
+        const file = proofs.find(proof => proof.includes(`${employee_id}_${course_id}.`));
         if (!file) throw 'Archivo no encontrado';
         const dirFile = join(userDir, file);
         const mimeType = mime.lookup(file) || 'application/octet-stream';
@@ -103,36 +109,39 @@ export class CourseService {
     }
 
     // * Relaciones
-    public async getByUser(user_id: string, pagination: QueryRelationsDTO) {
+    public async getByEmployee(employee_id: string, pagination: QueryRelationsDTO) {
         const { take, skip, search } = pagination;
-
+        const total = await this.courseRepository.count({
+            where: search && { name: Like(`%${search}%`)}
+        })
         const query = this.courseRepository.createQueryBuilder("course")
-            .loadRelationCountAndMap("course.total_users", "course.courseUsers")
-            .leftJoin("course.courseUsers", "courseUsers")
-            .where("courseUsers.user_id = :user_id", { user_id })
+            .select(['course.course_id as course_id', 'course.name as name', 'course.date_start as date_start', 'course.date_end as date_end'])
+            .leftJoin("course.courseEmployee", "courseEmployee")
+            .where("courseEmployee.employee_id = :employee_id", { employee_id })
             .skip(skip).take(take);
         if (search) query.where("course.name LIKE :search", { search: `%${search}%` });
-        return await query.getManyAndCount()
+        const courses = await query.getRawMany();
+        return [courses, total]
     }
 
     public async assignUsers(course_id: number, assignDto: AssignUsersToCourseDTO) {
         const { users } = assignDto;
         const course = await this.getById(course_id);
 
-        const usersID = course.courseUsers.map( usr => usr.user_id);
+        const usersID = course.courseEmployee.map( usr => usr.employee_id);
         const assingIDS = users.filter( usr => !usersID.includes(usr));
-        const usersToCourse = assingIDS.map(user_id => ({
+        const usersToCourse = assingIDS.map(employee_id => ({
             course_id: course.course_id,
-            user_id
+            employee_id
         }));
         this.courseUserRepository.insert(usersToCourse);
         return true;
     }
 
-    public async deleteUser(course_id: number, user_id: string) {
-        const userDir = join(__dirname, "..", "..", 'uploads/users', user_id, 'courses');
-        await this.courseUserRepository.delete({ course_id, user_id });
-        this.deleteFile(userDir, `${user_id}_${course_id}`);
+    public async deleteUser(course_id: number, employee_id: string) {
+        const userDir = join(__dirname, "..", "..", 'uploads/employees', employee_id, 'courses');
+        await this.courseUserRepository.delete({ course_id, employee_id });
+        this.deleteFile(userDir, `${employee_id}_${course_id}`);
         return true;
     }
 

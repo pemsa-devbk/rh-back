@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Length, ValidateNested } from "class-validator";
+import { IsBoolean, IsDateString, IsEmail, IsEnum, IsIn, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Length, ValidateNested } from "class-validator";
 import { MaritalStatus } from "../../types/enums/status_marital";
 import { CreateUserDto } from "./createUser.dto";
 import { Type } from "class-transformer";
@@ -36,7 +36,7 @@ export class CreateEmployeeDTO extends CreateUserDto {
 
     @IsOptional()
     @Length(5, 5, { message: 'El número de empleado para jefe directo debe tener 5 digitos' })
-    user_chief_id: string;
+    boss_id: string;
 
     @IsOptional()
     @IsBoolean()
@@ -57,6 +57,7 @@ export class CreateEmployeeDTO extends CreateUserDto {
     @IsNumber({}, { message: 'El salario es obligatorio' })
     salary: number;
 
+    @IsOptional()
     @IsNumberString({}, {message: 'El codigo postal de constancia de situación fiscall debe ser numerico'})
     @Length(5, 5, { message: 'El Codigo postal de constancia de situacion fiscal debe tener 5 digitos' })
     cp_csf: string;
@@ -68,6 +69,22 @@ export class CreateEmployeeDTO extends CreateUserDto {
 
     @IsInt({ message: 'La posición es obligatoria' })
     position_id: number;
+
+    @IsEmail({}, {message: 'El correo personal es obligatorio'})
+    email: string;
+
+    @IsOptional()
+    @IsOptional()
+    @Length(10, 10, { message: 'El número de celular debe contener 10 caracteres' })
+    cell_phone: string;
+
+    @IsOptional()
+    @IsBoolean()
+    have_alimony: boolean;
+
+    @IsOptional()
+    @Length(20, 20, { message: 'El número de credito fonacot debe contener 20 caracteres' })
+    cred_fonacot: string;
 
     // * Relations
     @IsOptional()

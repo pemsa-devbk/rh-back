@@ -20,7 +20,6 @@ export class MedicalService{
         if(!medical) throw new CustomError("No existe registro medico, primero creé uno", 400);
         await this.repository.update({employee_id}, updateDTO);
         return {...medical, ...updateDTO};
-
     }
 
     public getOne(employee_id: string){
