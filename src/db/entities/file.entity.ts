@@ -27,8 +27,11 @@ export class File{
     @Column({type: 'bit', default: 1})
     is_active: boolean;
 
-    @Column({type: 'bit', default: 1})
-    can_removed: boolean;
+    @Column({type: 'bit', default: 0})
+    is_cropped: boolean;
+
+    @Column({type: 'tinyint', nullable: true})
+    aspect_ratio: number;
 
     @CreateDateColumn()
     created_at: Date;

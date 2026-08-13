@@ -25,7 +25,7 @@ export class Binnacle{
     @Column({type: 'varchar', length: 5}) // * Para el usuario modificado
     modified_user_id: string;
 
-    @Column({type: 'varchar', length: 5, nullable: true}) // * Para el usuario que modifico
+    @Column({type: 'varchar', length: 5}) // * Para el usuario que modifico
     modifier_user_id: string;
 
     // * Relaciones:

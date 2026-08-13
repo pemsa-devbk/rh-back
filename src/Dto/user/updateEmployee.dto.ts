@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEmail, IsEnum, IsIn, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Length } from "class-validator";
+import { IsBoolean, IsDateString, IsEmail, IsEnum, IsIn, IsInt, IsNumber, IsNumberString, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
 import { MaritalStatus } from "../../types/enums/status_marital";
 
 export class UpdateEmployeeDTO {
@@ -101,4 +101,12 @@ export class UpdateEmployeeDTO {
     @Length(20, 20, { message: 'El número de credito fonacot debe contener 20 caracteres' })
     cred_fonacot?: string;
 
+}
+
+export class UpdatePasswordDTO{
+    @IsStrongPassword({})
+    password: string;
+
+    @IsString()
+    old_password: string;
 }

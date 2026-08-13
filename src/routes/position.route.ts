@@ -28,17 +28,17 @@ export class PositionRoute {
     }
 
     private initialize() {
-        this.router.post('/areas/:area_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreatePositionDto)], this.positionController.create);
-        this.router.delete('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.positionController.delete);
-        this.router.patch('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdatePositionDto)], this.positionController.update);
-        this.router.get('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getByID)
-        this.router.get('/areas/:area_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getByArea)
+        this.router.post('/areas/:area_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreatePositionDto)], this.positionController.create);
+        this.router.delete('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.delete);
+        this.router.patch('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdatePositionDto)], this.positionController.update);
+        this.router.get('/areas/:area_id/positions/:position_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getByID)
+        this.router.get('/areas/:area_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getByArea)
         // * Rutas relacionadas (+1 nivel)
-        this.router.get('/departments/:department_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getByDepartment)
-        this.router.get('/offices/:office_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getByOffice)
-        this.router.get('/enterprises/:enterprise_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getByEnterprise)
+        this.router.get('/departments/:department_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getByDepartment)
+        this.router.get('/offices/:office_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getByOffice)
+        this.router.get('/enterprises/:enterprise_id/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getByEnterprise)
 
         // *rutas globales (sin contexto)
-        this.router.get('/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.positionController.getAll)
+        this.router.get('/positions', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.positionController.getAll)
     }
 }

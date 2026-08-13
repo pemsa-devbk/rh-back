@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, renameSync, rmSync } from "fs";
+import { existsSync, mkdirSync, rmSync } from "fs";
 import { appDataSource } from "../db/dataBase";
 import { Employee } from "../db/entities/employee.entity";
 import { CreateEmployeeDTO } from "../Dto/user/createEmployee.dto";
@@ -16,7 +16,10 @@ import { MedicalData } from "../db/entities/medical_data.entity";
 import { PaginationDto } from "../Dto/pagination.dto";
 import { Like } from "typeorm";
 import { CustomError } from "../utils/error";
-import { UpdateEmployeeDTO } from "../Dto/user/updateEmployee.dto";
+import { UpdateEmployeeDTO, UpdatePasswordDTO } from "../Dto/user/updateEmployee.dto";
+import { StatusUser } from "../types/enums/status_user";
+import { ColumnTypeMap } from "../types/search_type";
+import { applyQueryFilters2 } from "../utils/applySearch";
 
 enum EmployeeQueryContext {
     FROM_ENTERPRISE = 'FROM_ENTERPRISE', // Desde /enterprises/:id/employees -> Office + department + area + position + employee
@@ -25,9 +28,23 @@ enum EmployeeQueryContext {
     FROM_AREA = 'FROM_AREA', // Desde areas/:id/employees -> position + employee
     FROM_POSITION = 'FROM_POSITION', // Desde positions/:id/employees -> employee
     FROM_COURSE = 'FROM_COURSE', // Desde course/:id/courses -> employee
-    FROM_GENERAL = 'FROM_GENERAL' // Desde /employees -> enterpise + Office + department + area + position + employee
+    FROM_GENERAL = 'FROM_GENERAL', // Desde /employees -> enterpise + Office + department + area + position + employee
 }
 
+const EMPLOYEE_COLUMNS_TYPES: ColumnTypeMap<Employee> = {
+    // * entidad principal
+    name: { type: 'text', column: 'user.name', default: 'like' },
+    salary: {type: 'number', column: 'employee.salary', default: 'eq'},
+    birthdate: { type: 'date', column: 'employee.birthdate', default: 'eq' },
+    department_name: { type: 'text', column: 'department.name', default: 'like' },
+    area_name: { type: 'text', column: 'area.name', default: 'like' },
+    // valid_mime_types: { type: 'text', alias: 'file' },
+    // description: { type: 'text', alias: 'file' },
+    // created_at: { type: 'date', alias: 'file' },
+    // is_active: { type: 'boolean', alias: 'file' },
+    // is_required: { type: 'boolean', alias: 'file' }
+};
+// TODO Al crear el usuario crear la firma de correo y verificar contraseña
 export class EmployeeService {
 
     private dir = join(__dirname, "..", "..", "uploads", 'employees');
@@ -36,12 +53,11 @@ export class EmployeeService {
     ) { }
 
     public create(createDTO: CreateEmployeeDTO, userSession: User) {
-        const { address, banking, contract, enterpiseInformation, license, medical, user_id, name, password, ...employeeDTO } = createDTO;
+        const { address, banking, contract, enterpiseInformation, license, medical, user_id, role_id, name, password, ...employeeDTO } = createDTO;
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
             if (!existsSync(this.dir)) mkdirSync(this.dir);
-            // TODO: Password
             const passbcrypt = bcrypt.hashSync('password', 10);
-            const user = await transactionalEntityManager.save(User, { user_id, name, password: passbcrypt });
+            const user = await transactionalEntityManager.save(User, { user_id, name, password: passbcrypt, role_id });
             const employee = await transactionalEntityManager.save(Employee, { ...employeeDTO, user_id });
 
             // * Crear el movimiento
@@ -77,9 +93,13 @@ export class EmployeeService {
         });
     }
 
-    public async getAll(pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+    public async getAll(pagination: any) {
         const query = this.getQuery();
+        applyQueryFilters2(query, pagination, EMPLOYEE_COLUMNS_TYPES)
+        console.log(query.getQuery())
+        const emp = await query.getRawMany();
+        return [emp, 10];
+        const { skip, take, search } = pagination;
         if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
         const [total, employees] = await Promise.all([
             this.repository.count({
@@ -91,7 +111,7 @@ export class EmployeeService {
     }
 
     public async getOne(employee_id: string) {
-        return await this.getQuery().where('employee.user_id = :employee_id', {employee_id}).getRawOne();
+        return await this.getQuery().where('employee.user_id = :employee_id', { employee_id }).getRawOne();
     }
 
     public async update(employee_id: string, updateDTO: UpdateEmployeeDTO, userSession: User) {
@@ -99,9 +119,9 @@ export class EmployeeService {
         await this.findOneOrFail(employee_id);
         await this.repository.manager.transaction(async (transactionalEntityManager) => {
             if (!existsSync(this.dir)) mkdirSync(this.dir);
-            
+
             await transactionalEntityManager.update(User, { user_id: employee_id }, { name });
-            await transactionalEntityManager.update(Employee, {user_id: employee_id}, { ...employeeDTO });
+            await transactionalEntityManager.update(Employee, { user_id: employee_id }, { ...employeeDTO });
 
             // * Crear el movimiento
             await transactionalEntityManager.insert(Binnacle, {
@@ -116,6 +136,42 @@ export class EmployeeService {
 
         });
         return this.getOne(employee_id);
+    }
+
+    public async toggleStatus(employee_id: string, userSession: User){
+        const employee = await this.findOneOrFail(employee_id);
+        if(employee.status === StatusUser.vacaciones) throw new CustomError(`Espere a que el periodo de vacaciones del empleado ${employee.name} termine`, 401);
+        return this.repository.manager.transaction(async (transactionalEntityManager) => {
+            await transactionalEntityManager.update(Employee, {employee_id}, {status: (employee.status === StatusUser.activo) ? StatusUser.baja : StatusUser.activo});
+            await transactionalEntityManager.insert(Binnacle, {
+                modified_user_id: employee_id,
+                modifier_user_id: userSession.user_id,
+                type: ValidStateMov.alta
+            });
+            return employee;
+        })
+    }
+
+    public async changePassword(passwordDTO: UpdatePasswordDTO, userSession: User){
+        const {old_password, password} = passwordDTO;
+        if(!bcrypt.compareSync(password, userSession.password)) throw new CustomError("La contraseña no coincide", 401);
+        return this.repository.manager.transaction(async (transactionalEntityManager) => {
+            await transactionalEntityManager.update(User, {user_id: userSession.user_id}, { password: bcrypt.hashSync(old_password, 10)});
+
+            await transactionalEntityManager.insert(Binnacle, {
+                modified_user_id: userSession.user_id,
+                modifier_user_id: userSession.user_id,
+                type: ValidStateMov.edicion,
+                comment: 'Actualización de contraseña'
+            });
+            return 'La contraseña se actualizo correctamente';
+        })
+    }
+
+    public async myInfo(userSession: User){
+        return  this.getQuery(EmployeeQueryContext.FROM_GENERAL)
+            .where('employee.user_id = :employee_id', { employee_id: userSession.user_id })
+            .getRawOne();
     }
 
     public async delete(employee_id: string) {
@@ -202,6 +258,33 @@ export class EmployeeService {
         return [employees, total];
     }
 
+    public async getPublicEmployee(employee_id: string) {
+        const query = this.repository.createQueryBuilder('employee')
+            .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.status as status', 'employee.position_id as position_id'])
+            .leftJoin('employee.user', 'user')
+            .addSelect('user.name', 'name')
+            .addSelect('user.update_at', 'update_at')
+            .addSelect('user.deleted_at', 'deleted_at')
+            .leftJoin('employee.position', 'position')
+            .leftJoin('position.area', 'area')
+            .leftJoin('area.department', 'department')
+            .leftJoin('department.office', 'office')
+            .leftJoin('office.enterprise', 'enterprise')
+            .addSelect('position.name', 'position_name')
+            .addSelect('area.area_id', 'area_id')
+            .addSelect('area.name', 'area_name')
+            .addSelect('department.department_id', 'department_id')
+            .addSelect('department.name', 'department_name')
+            .addSelect('office.office_id', 'office_id')
+            .addSelect('office.name', 'office_name')
+            .addSelect('enterprise.enterprise_id', 'enterprise_id')
+            .addSelect('enterprise.name', 'enterprise_name')
+            .where('employee.user_id = :employee_id', { employee_id });
+        const employee = await  query.getRawOne();
+        if(!employee) throw new CustomError("Solicitud no encontrada", 404);
+        return employee;
+    }
+
     private getQuery(context: EmployeeQueryContext = EmployeeQueryContext.FROM_GENERAL) {
         const query = this.repository.createQueryBuilder('employee')
             .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.birthdate as birthdate', 'employee.curp as curp', 'employee.status as status', 'employee.rfc as rfc', 'employee.cuip as cuip', 'employee.num_children as num_children', 'employee.vacation_days as vacation_days', 'employee.boss_id as boss_id', 'employee.have_uniform as have_uniform', 'employee.num_infonavit as num_infonavit', 'employee.marital_status as marital_status', 'employee.place_registration as place_registration', 'employee.salary as salary', 'employee.cp_csf as cp_csf', 'employee.date_entry as date_entry', 'employee.position_id as position_id', 'employee.email as email', 'employee.cell_phone as cell_phone', 'employee.have_alimony as have_alimony', 'employee.cred_fonacot as cred_fonacot'])
@@ -278,10 +361,10 @@ export class EmployeeService {
         return query;
 
     }
-    
+
 
     private async findOneOrFail(employee_id: string) {
-        const user = await this.getQuery(EmployeeQueryContext.FROM_AREA)
+        const user = await this.getQuery(EmployeeQueryContext.FROM_POSITION)
             .where('employee.user_id = :employee_id', { employee_id })
             .getRawOne();
         if (!user) throw new CustomError("Empleado no existente", 404);

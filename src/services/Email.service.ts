@@ -3,6 +3,10 @@ import { User } from '../db/entities/user.entity';
 import { readFileSync } from 'fs';
 import { Resend } from 'resend';
 import { enviroment } from '../config/enviroment';
+
+// * month or single
+const UPLOADS_DIR = join(__dirname, "..", "..", "uploads", "birthday", "email");
+
 export class EmailService {
     private resend = new Resend(enviroment.RESEND_API_KEY);
     constructor() {

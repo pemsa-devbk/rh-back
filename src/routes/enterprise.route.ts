@@ -34,19 +34,19 @@ export class EnterpriseRoute {
     }
 
     private initialize() {
-        this.router.post('/enterprises', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateEnterpriseDTO)], this.enterpreiceCotroller.create);
-        this.router.get('/enterprises', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.enterpreiceCotroller.getAll);
-        this.router.get('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.enterpreiceCotroller.getOne);
-        this.router.patch('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateEnterpriseDTO)], this.enterpreiceCotroller.update);
-        this.router.delete('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.enterpreiceCotroller.delete);
+        this.router.post('/enterprises', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateEnterpriseDTO)], this.enterpreiceCotroller.create);
+        this.router.get('/enterprises', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.enterpreiceCotroller.getAll);
+        this.router.get('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.enterpreiceCotroller.getOne);
+        this.router.patch('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateEnterpriseDTO)], this.enterpreiceCotroller.update);
+        this.router.delete('/enterprises/:enterprise_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.enterpreiceCotroller.delete);
 
         // * Relations
-        this.router.post('/enterprises/preview_signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateEnterpriseDTO)], this.enterpreiceCotroller.priviewSignature)
+        this.router.post('/enterprises/preview_signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateEnterpriseDTO)], this.enterpreiceCotroller.priviewSignature)
 
-        this.router.patch('/enterprises/:enterprise_id/signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateSignatureDto)], this.enterpreiceCotroller.updateSignature)
+        this.router.patch('/enterprises/:enterprise_id/signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateSignatureDto)], this.enterpreiceCotroller.updateSignature)
 
-        this.router.get('/enterprises/:enterprise_id/signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.enterpreiceCotroller.getSignature)
+        this.router.get('/enterprises/:enterprise_id/signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.enterpreiceCotroller.getSignature)
 
-        this.router.post('/enterprises/:enterprise_id/download_signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(NewSignatureDto)], this.enterpreiceCotroller.newSignature)
+        this.router.post('/enterprises/:enterprise_id/download_signature', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(NewSignatureDto)], this.enterpreiceCotroller.newSignature)
     }
 }

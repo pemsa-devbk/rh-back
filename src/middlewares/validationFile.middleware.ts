@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import multer from "multer";
+// import multer from "multer";
 
 export const validArchivo = (err:unknown, req: Request , res:Response, next: () => void)=>{
 

@@ -13,7 +13,7 @@ export class BinnacleRoute {
     }
 
     private initialize(){
-        this.router.get('/users/:user_id/binnacles/modifier', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.binnacleController.getByModifier);
-        this.router.get('/users/:user_id/binnacles/modified', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.binnacleController.getByModified);
+        this.router.get('/users/:user_id/binnacles/modifier', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.binnacleController.getByModifier);
+        this.router.get('/users/:user_id/binnacles/modified', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.binnacleController.getByModified);
     }
 }

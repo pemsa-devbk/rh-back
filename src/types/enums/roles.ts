@@ -1,11 +1,11 @@
 export enum validRoles {
-    SUPER_USER= 'super-user', // Only first user (system)
+    SUPER_ADMIN = 1, // Only first user (system)
 
-    ADMIN = 'admin',// puede hacer todo 
+    ADMIN = 2,// puede hacer todo 
 
-    MANAGER = 'manager', //Puede dar de alta /Editar
+    MANAGER = 3, //Puede dar de alta /Editar
 
-    QUERY = 'query', //Read All
+    SUPERVISOR = 4, //Read All
     
-    USER = 'user' //Lectura  de su info
+    EMPLOYEE = 5 //Lectura  de su info
 }

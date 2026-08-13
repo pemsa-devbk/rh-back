@@ -15,8 +15,8 @@ export class BankingDetailsRoute {
     }
 
     private initialize() {
-        this.router.post('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(BankingDetailsDTO)], this.controller.create);
-        this.router.patch('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateBankingDetailsDTO)], this.controller.update)
-        this.router.get('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
+        this.router.post('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(BankingDetailsDTO)], this.controller.create);
+        this.router.patch('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateBankingDetailsDTO)], this.controller.update)
+        this.router.get('/employees/:employee_id/banking-details', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
     }
 }

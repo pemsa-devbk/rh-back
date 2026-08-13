@@ -28,17 +28,17 @@ export class AreaRoute {
     }
     
     private initialize() {
-        this.router.post('/departments/:department_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateAreaDto)], this.areaController.create);
-        this.router.get('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.areaController.getOne);
-        this.router.delete('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.areaController.delete);
-        this.router.patch('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateAreaDto)], this.areaController.update);
-        this.router.get('/departments/:department_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.areaController.getByDepartment);
+        this.router.post('/departments/:department_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateAreaDto)], this.areaController.create);
+        this.router.get('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.getOne);
+        this.router.delete('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.delete);
+        this.router.patch('/departments/:department_id/areas/:area_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateAreaDto)], this.areaController.update);
+        this.router.get('/departments/:department_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.getByDepartment);
         
         // * Rutas relacionadas (+1 nivel)
-        this.router.get('/enterprises/:enterprise_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.areaController.getByEnterprise);
-        this.router.get('/offices/:office_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.areaController.getByOffice);
+        this.router.get('/enterprises/:enterprise_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.getByEnterprise);
+        this.router.get('/offices/:office_id/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.getByOffice);
         
         // * Rutas globales (sin contexto)
-        this.router.get('/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.areaController.getAll);
+        this.router.get('/areas', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.areaController.getAll);
     }
 }

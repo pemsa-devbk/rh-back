@@ -15,8 +15,8 @@ export class LicenseRoute {
     }
 
     private initialize() {
-        this.router.post('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(LicenseDTO)], this.controller.create);
-        this.router.patch('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateLicenseDto)], this.controller.update)
-        this.router.get('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
+        this.router.post('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(LicenseDTO)], this.controller.create);
+        this.router.patch('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateLicenseDto)], this.controller.update)
+        this.router.get('/employees/:employee_id/license', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
     }
 }

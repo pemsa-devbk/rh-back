@@ -16,7 +16,7 @@ export class Area {
     @Column({ nullable: true, type: 'varchar', length: 5 })
     responsible_user_id: string;
 
-    @Column({ nullable: true })
+    @Column()
     department_id: number;
 
     // * Relations

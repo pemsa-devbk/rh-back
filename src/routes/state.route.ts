@@ -17,10 +17,10 @@ export class StateRoute{
     }
 
     private initialize(){
-        this.router.post('/states', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateStateDTO)], this.controller.create)
-        this.router.get('/states', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll)
-        this.router.get('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
-        this.router.patch('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateStateDTO)], this.controller.update )
-        this.router.delete('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
+        this.router.post('/states', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateStateDTO)], this.controller.create)
+        this.router.get('/states', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll)
+        this.router.get('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
+        this.router.patch('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateStateDTO)], this.controller.update )
+        this.router.delete('/states/:code_state', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete)
     }
 }

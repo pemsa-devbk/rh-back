@@ -26,13 +26,13 @@ export class OfficeRoute {
     }
     
     private initialize() {
-        this.router.post('/enterprises/:enterprise_id/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateOfficeDto)], this.officeController.create);
-        this.router.get('/enterprises/:enterprise_id/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.officeController.getByEnterprise);
-        this.router.get('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.officeController.getOne);
-        this.router.delete('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.officeController.delete);
-        this.router.patch('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateOfficeDto)], this.officeController.update);
+        this.router.post('/enterprises/:enterprise_id/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateOfficeDto)], this.officeController.create);
+        this.router.get('/enterprises/:enterprise_id/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.officeController.getByEnterprise);
+        this.router.get('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.officeController.getOne);
+        this.router.delete('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.officeController.delete);
+        this.router.patch('/enterprises/:enterprise_id/offices/:office_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateOfficeDto)], this.officeController.update);
         
         // * Rutas globales (sin contexto)
-        this.router.get('/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER, validRoles.QUERY])], this.officeController.getAll);
+        this.router.get('/offices', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.officeController.getAll);
     }
 }

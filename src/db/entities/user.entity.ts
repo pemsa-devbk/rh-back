@@ -1,8 +1,9 @@
-import { Column, DeleteDateColumn, Entity, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Binnacle } from "./binnacle.entity";
 import { Employee } from "./employee.entity";
 import { UserRole } from "./user_role.entity";
 import { EmployeeFiles } from "./employee_files.entity";
+import { Rol } from "./roles.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -21,8 +22,8 @@ export class User {
     password: string;
 
     // TODO: Verificar los niveles de rol
-    // @Column()
-    // rol: string;
+    @Column()
+    role_id: number;
 
     @UpdateDateColumn()
     update_at: Date;
@@ -51,11 +52,18 @@ export class User {
     )
     history: Binnacle[];
 
-    @OneToMany(
-        () => UserRole,
-        (userRole) => userRole.user
+    @ManyToOne(
+        () => Rol,
+        (rol) => rol.users
     )
-    userRoles: UserRole[];
+    @JoinColumn({ name: 'role_id' })
+    rol: Rol;
+
+    // @OneToMany(
+    //     () => UserRole,
+    //     (userRole) => userRole.user
+    // )
+    // userRoles: UserRole[];
 
     @OneToMany(
         () => EmployeeFiles,

@@ -14,6 +14,7 @@ export class BinncacleService {
             .leftJoin('binnacle.modifierUser', 'modifierUser')
             .addSelect(['modifierUser.name'])
             .where('binnacle.modified_user_id = :user_id', { user_id })
+            .orderBy('binnacle.created_at', 'ASC')
             .skip(skip).take(take)
             .getManyAndCount();
     }
@@ -49,6 +50,7 @@ export class BinncacleService {
             .leftJoin('binnacle.modifierUser', 'modifierUser')
             .addSelect('modifiedUser.name', 'modified_name')
             .addSelect('modifierUser.name', 'modifier_name')
+            .orderBy('binnacle.created_at', 'ASC')
     }
 
 }

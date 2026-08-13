@@ -12,7 +12,6 @@ import fileUpload from 'express-fileupload';
 import authRoutes from '../routes/auth.route'
 import seedRoutes from '../routes/seed.route'
 
-
 import { ContractRoute, CourseRoute, StateRoute, MunicipalityRoute, ColonyRoute, BankRoute, EmployeeRoute, DepartmentRoute, AddressRoute, MedicalRoute, BankingDetailsRoute, LicenseRoute, EnterpriseInformationRoute, FileRoute ,HolidayRoute ,BinnacleRoute ,AreaRoute ,PositionRoute ,OfficeRoute ,UserRoute ,ConfigRoute ,EnterpriseRoute } from '../routes/index.route'
 
 
@@ -99,6 +98,9 @@ export class Server {
         this.app.use( enterpriseInformation.router );
         const contractRoute = new ContractRoute();
         this.app.use( contractRoute.router );
+        // TODO Aun no se establece motor de IA a utilizar en las pruebas con nanobanana se generaban errores en las imagenes al crear o bien errores ortograficos propios de la IA se hicieron pruebas con varios Props de momento solo se devuelven el array de empleados que cumplen años en el mes y un promp guía para utilizarlos en IA como Chat-GPT, Gemini, etc.
+        // const iaRoute = new IARoute();
+        // this.app.use( iaRoute.router );
 
         // TODO: Revisar hasta tener datos
         this.app.use('/bitrhDay', async (req, res) => {

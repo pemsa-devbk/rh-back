@@ -62,17 +62,16 @@ export class Employee {
     })
     num_children: number;
 
-    // TODO Quitar nullable de vacations_days boss_id, have_uniform, maritial_sttaus, place_registration, salary
     @Column({
         type: 'smallint',
-        default: 0, nullable: true
+        default: 0
     })
     vacation_days: number;
 
-    @Column({ nullable: true, type: 'varchar', length: 5 })
+    @Column({ type: 'varchar', length: 5, nullable: true })
     boss_id: string;
 
-    @Column({ type: 'bit', default: false, nullable: true })
+    @Column({ type: 'bit', default: false })
     have_uniform: boolean;
 
     @Column({ type: 'varchar', nullable: true, length: 10 })
@@ -84,7 +83,7 @@ export class Employee {
     @Column({ type: 'varchar', length: 200, nullable: true })
     place_registration: string;
 
-    @Column({ type: 'int', nullable: true })
+    @Column({ type: 'int' })
     salary: number;
 
     @Column({ type: 'char', length: 5, nullable: true })
@@ -99,14 +98,13 @@ export class Employee {
     position_id: number;
 
     // * New columns
-    // TODO quitar nullable excepto cell_phone y cred_fonacot
-    @Column({type: 'varchar', length: 254, nullable: true })
+    @Column({type: 'varchar', length: 254 })
     email: string;
 
     @Column({ type: 'varchar', length: 10, nullable: true })
     cell_phone: string;
 
-    @Column({type: 'bit', default: false, nullable: true})
+    @Column({type: 'bit', default: false})
     have_alimony: boolean;
 
     @Column({ type: 'varchar', nullable: true, length: 10 })

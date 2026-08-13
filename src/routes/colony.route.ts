@@ -17,17 +17,17 @@ export class ColonyRoute{
     }
 
     private initialize(){
-        this.router.post('/municipalities/:municipality_id/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateColonyDTO)], this.controller.create)
-        this.router.get('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
-        this.router.patch('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateColonyDTO)], this.controller.update )
-        this.router.delete('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
-        this.router.get('/municipalities/:municipality_id/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByMunicipality)
+        this.router.post('/municipalities/:municipality_id/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateColonyDTO)], this.controller.create)
+        this.router.get('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
+        this.router.patch('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateColonyDTO)], this.controller.update )
+        this.router.delete('/municipalities/:municipality_id/colonies/:colony_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete)
+        this.router.get('/municipalities/:municipality_id/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByMunicipality)
         
         // * Rutas relacionadas (+1 nivel)
-        this.router.get('/states/:code_state/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByState)
+        this.router.get('/states/:code_state/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByState)
 
         // * rutas globales (sin contexto)
-        this.router.get('/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll)
-        this.router.get('/postal_code/:postal_code', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByPostalCode)
+        this.router.get('/colonies', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll)
+        this.router.get('/postal_code/:postal_code', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByPostalCode)
     }
 }

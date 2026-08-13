@@ -17,13 +17,13 @@ export class MunicipalityRoute{
     }
 
     private initialize(){
-        this.router.post('/states/:code_state/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateMunicipalityDTO)], this.controller.create)
-        this.router.get('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
-        this.router.patch('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateMunicipalityDTO)], this.controller.update )
-        this.router.delete('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
-        this.router.get('/states/:code_state/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByState)
+        this.router.post('/states/:code_state/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateMunicipalityDTO)], this.controller.create)
+        this.router.get('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
+        this.router.patch('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateMunicipalityDTO)], this.controller.update )
+        this.router.delete('/states/:code_state/municipalities/:municipality_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete)
+        this.router.get('/states/:code_state/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByState)
         
         // * rutas globales (sin contexto)
-        this.router.get('/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll)
+        this.router.get('/municipalities', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll)
     }
 }

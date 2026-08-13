@@ -15,8 +15,8 @@ export class ContractRoute {
     }
 
     private initialize() {
-        this.router.post('/employees/:employee_id/contracts', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(ContractDTO)], this.controller.create);
-        this.router.delete('/employees/:employee_id/contracts/:contract_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), ], this.controller.delete)
-        this.router.get('/employees/:employee_id/contracts', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll)
+        this.router.post('/employees/:employee_id/contracts', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(ContractDTO)], this.controller.create);
+        this.router.delete('/employees/:employee_id/contracts/:contract_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), ], this.controller.delete)
+        this.router.get('/employees/:employee_id/contracts', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll)
     }
 }

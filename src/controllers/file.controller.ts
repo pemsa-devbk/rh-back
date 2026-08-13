@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { FileService } from '../services/file.service';
-import mime from 'mime-types'
 import { SearchFile } from '../Dto/file/SearchFile.dto';
 
 
@@ -60,6 +59,16 @@ export class FileController {
         }
     }
 
+    public getByEmployee = async(req:Request, res: Response, next: NextFunction) => {
+        const {employee_id} = req.params;
+        try {
+            const files = await this.fileService.getAllByEmployee(employee_id);
+            res.json(files); 
+        } catch (error) {
+            next(error)
+        }
+    }
+
     public uploadForUser = async(req:Request, res: Response, next: NextFunction) => {
         const {employee_id} = req.params;
         const dto = req.body;
@@ -71,90 +80,74 @@ export class FileController {
         }
     }
 
-    public getFileUser = async(req:Request, res: Response, next: NextFunction) => {
-        const {file_id, user_id} = req.params;
+    public getFileEmployee = (req:Request, res: Response, next: NextFunction) => {
+        const {file_id, employee_id} = req.params;
         try {
-            //  const [filename, dir, mimeType] = this.courseService.downloadProof(+course_id, user_id);
-            // res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-            // res.setHeader('Content-Type', mimeType);
-            // res.download(dir, filename, err => {
-            //     if (err) {
-            //         res.status(500).json({ message: "Error al descargar el archivo" })
-            //     }
-            // })
+             const [filename, dir, mimeType] = this.fileService.getFileEmployee(+file_id, employee_id);
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.setHeader('Content-Type', mimeType);
+            res.download(dir, filename, err => {
+                if (err) {
+                    res.status(500).json({ message: "Error al descargar el archivo" })
+                }
+            })
         } catch (error) {
             next(error);
         }
     }
 
-    // public uploadFiles = (req: Request, res: Response) => {
-    //     try {
-    //         const relativePath = req.params[0];
-    //         this.fileService.uploadFiles(relativePath, req.files);
-    //         res.json({ message: "Archivos subidos" });
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
+    public getPhotoEmployee = (req:Request, res: Response, next: NextFunction) => {
+        const {employee_id} = req.params;
+        try {
+             const [bufferPhoto, mimeType] = this.fileService.getPhotoEmployee(employee_id);
+            res.setHeader('Content-Disposition', `inline; filename="Foto"`);
+            res.setHeader('Content-Type', mimeType);
+            res.send(bufferPhoto);
+        } catch (error) {
+            next(error);
+        }
+    }
 
-    // public donwload = (req: Request, res: Response) => {
-    //     const relativePath = req.params[0];
-    //     try {
-    //         const [filename, dir] = this.fileService.downloadFile(relativePath);
-    //         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    //         res.setHeader('Content-Type', 'application/octet-stream');
-    //         res.download(dir, filename, err => {
-    //             if (err) {
-    //                 res.status(500).json({ message: "Error al descargar el archivo" })
-    //             }
-    //         })
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-    // public listDirecoty = (req: Request, res: Response) => {
-    //     const relativePath = req.params[0];
-    //     try {
-    //         const files = this.fileService.listDirectory(relativePath);
-    //         res.json({ content: files });
+    public getCredential = async (req: Request, res: Response, next: NextFunction) => {
+        const { employee_id } = req.params;
+        const { year } = req.query;
+        try {
+            const [user, credential] = await this.fileService.getCredential(employee_id, `${year}` );
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename=Credencial ${user.name}.pdf`);
+            res.send(credential)
+        } catch (error) {
+            next(error);
+        }
+    }
 
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
+    public getSignature = async (req: Request, res: Response, next: NextFunction) => {
+        const { employee_id } = req.params;
+        try {
+            const [user, signatureDir] = await this.fileService.getSignature(employee_id);
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Content-Disposition', `inline; filename=Firma de correo ${user.name}.png`);
+            res.download(signatureDir, 'signature.png', err => {
+                if (err) {
+                    res.status(500).json({ message: "Error al descargar el archivo" })
+                }
+            })
+        } catch (error) {
+            next(error);
+        }
+    }
 
-    // public rename = (req: Request, res: Response) => {
-    //     const { from, to } = req.body;
-    //     try {
-    //         this.fileService.rename(from, to);
-    //         res.json({ message: "Modificado" });
-
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-
-    // public delete = (req: Request, res: Response) => {
-    //     const relativePath = req.params[0];
-    //     try {
-    //         this.fileService.delete(relativePath);
-    //         res.json({ success: true });
-
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-
-    // public create = (req: Request, res: Response) => {
-    //     const { dir } = req.body;
-    //     try {
-    //         this.fileService.create(dir);
-    //         res.json({ success: true });
-
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
+    public refreshSignature = async (req: Request, res: Response, next: NextFunction) => {
+        const { employee_id } = req.params;
+        try {
+            const [employee, signature] = await this.fileService.refreshSignature(employee_id );
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Content-Disposition', `inline; filename=Firma de correo ${employee.name}.png`);
+            res.send(signature)
+        } catch (error) {
+            next(error);
+        }
+    }
 
 }
 

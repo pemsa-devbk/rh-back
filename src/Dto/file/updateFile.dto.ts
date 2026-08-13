@@ -1,5 +1,4 @@
-import { Transform } from "class-transformer";
-import { IsBoolean, IsMimeType, IsNumber, IsOptional, IsString, Length } from "class-validator";
+import { IsBoolean, IsInt, IsMimeType, IsNumber, IsOptional, IsString, Length } from "class-validator";
 
 export class UpdateFileDTO {
     @IsOptional()
@@ -21,7 +20,7 @@ export class UpdateFileDTO {
 
     @IsOptional()
     @IsBoolean()
-    is_required: boolean = true;
+    is_required: boolean;
 
     @IsOptional()
     @IsString({ message: 'La descripcion debe ser de tipo texto' })
@@ -29,5 +28,13 @@ export class UpdateFileDTO {
 
     @IsBoolean()
     @IsOptional()
-    is_active: boolean = true;
+    is_active: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    is_cropped: boolean;
+
+    @IsOptional()
+    @IsInt()
+    aspect_ratio: number;
 }

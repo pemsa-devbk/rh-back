@@ -15,8 +15,8 @@ export class MedicalRoute {
     }
 
     private initialize() {
-        this.router.post('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(MedicalDataDTO)], this.controller.create);
-        this.router.patch('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateMedicalDataDTO)], this.controller.update)
-        this.router.get('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
+        this.router.post('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(MedicalDataDTO)], this.controller.create);
+        this.router.patch('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateMedicalDataDTO)], this.controller.update)
+        this.router.get('/employees/:employee_id/medical', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
     }
 }

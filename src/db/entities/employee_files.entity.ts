@@ -18,6 +18,9 @@ export class EmployeeFiles{
     @Column({ type: 'varchar', length: 5 })
     uploaded_by: string;
 
+    @Column({type: 'tinyint', default: 0})
+    status: number;
+
     @UpdateDateColumn()
     updated_at: Date;
 

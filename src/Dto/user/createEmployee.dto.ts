@@ -51,6 +51,7 @@ export class CreateEmployeeDTO extends CreateUserDto {
     @IsEnum(MaritalStatus, { message: 'El estado civil es obligatoriao' })
     marital_status: MaritalStatus;
 
+    @IsOptional()
     @IsString({ message: 'El lugar de registro es obligatorio' })
     place_registration: string;
 

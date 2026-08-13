@@ -144,8 +144,6 @@ export class HolidayService {
         });
     }
 
-
-
     public async getFormatHoliday(employee_id: string, request_holiday_id: number): Promise<[string, string, string]> {
 
         const holiday = await this.holidayRequestRepository.findOne({ where: { request_holiday_id, employee_id }, relations: { employee: { user: true }, days: true } })
@@ -156,10 +154,12 @@ export class HolidayService {
         if (!fileExist) throw "Archivo no existente";
 
         const dirFile = join(pathFiles, fileExist);
-        const mimeType = mime.lookup(fileExist) || 'application/octet-stream';
+        const mimeType = mime.getType(fileExist) || 'application/octet-stream';
         // const othersText = this.formatVacationDates(holiday.days);
         return [fileExist, dirFile, mimeType];
     }
+
+    // * FALTA
 
     private async createDoc(transactionalEntityManager: EntityManager, holiday: HolidayRequest, employee: Employee) {
 

@@ -9,9 +9,9 @@ import { UpdateConfigDto } from "../Dto/holidays/update_config.dto";
 export class ConfigController {
     constructor(
         private readonly configService = new ConfigService()
-    ){}
+    ) { }
 
-    public assignUser = async(req:Request, res:Response, next: NextFunction) => {
+    public assignUser = async (req: Request, res: Response, next: NextFunction) => {
         const assignDto = plainToInstance(AssignUserDto, req.body);
         try {
             await this.configService.assignUser(assignDto);
@@ -23,7 +23,7 @@ export class ConfigController {
         }
     }
 
-    public getConfiguration = async(req:Request, res:Response, next: NextFunction) => {
+    public getConfiguration = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const config = await this.configService.getSystemConfiguration();
             res.json({
@@ -33,8 +33,8 @@ export class ConfigController {
             next(error);
         }
     }
-    
-    public getRoles = (req:Request, res:Response, next: NextFunction) => {
+
+    public getRoles = (req: Request, res: Response, next: NextFunction) => {
         try {
             const roles = this.configService.getRoles();
             res.json({
@@ -45,7 +45,7 @@ export class ConfigController {
         }
     }
 
-    public getConfigHoliday = async(req:Request, res:Response, next: NextFunction) => {
+    public getConfigHoliday = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const config = await this.configService.getHolidaysConfig();
             res.json({
@@ -55,7 +55,7 @@ export class ConfigController {
             next(error);
         }
     }
-    public createConfigHoliday = async (req:Request, res:Response, next: NextFunction) => {
+    public createConfigHoliday = async (req: Request, res: Response, next: NextFunction) => {
         const dto = plainToInstance(CreateConfigDto, req.body);
         try {
             const response = await this.configService.createConfigHoliday(dto);
@@ -66,8 +66,8 @@ export class ConfigController {
             next(error);
         }
     }
-    public updateConfig = async(req:Request, res:Response, next: NextFunction) => {
-        const {id} = req.params;
+    public updateConfig = async (req: Request, res: Response, next: NextFunction) => {
+        const { id } = req.params;
         const dto = plainToInstance(UpdateConfigDto, req.body);
         try {
             const response = await this.configService.updateConfig(+id, dto);
@@ -79,8 +79,8 @@ export class ConfigController {
         }
     }
 
-    public deleteConfig = async(req:Request, res:Response, next: NextFunction) => {
-        const {id} = req.params;
+    public deleteConfig = async (req: Request, res: Response, next: NextFunction) => {
+        const { id } = req.params;
         try {
             const response = await this.configService.deleteConfig(+id);
             res.json({
@@ -90,4 +90,6 @@ export class ConfigController {
             next(error);
         }
     }
+
+    
 }

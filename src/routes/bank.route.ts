@@ -17,10 +17,10 @@ export class BankRoute{
     }
 
     private initialize(){
-        this.router.post('/banks', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateBankDTO)], this.controller.create)
-        this.router.get('/banks', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll )
-        this.router.get('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getOne)
-        this.router.patch('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateBankDTO)], this.controller.update)
-        this.router.delete('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete)
+        this.router.post('/banks', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateBankDTO)], this.controller.create)
+        this.router.get('/banks', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll )
+        this.router.get('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getOne)
+        this.router.patch('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateBankDTO)], this.controller.update)
+        this.router.delete('/banks/:bank_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete)
     }
 }

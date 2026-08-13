@@ -19,9 +19,9 @@ export class EmployeeController{
     }
 
     public getAll = async(req:Request, res: Response, next: NextFunction) => {
-        const pagination = plainToInstance(PaginationDto, req.query);
+        // const pagination = plainToInstance(PaginationDto, req.query);
         try {
-            const [employees, total] = await this.service.getAll(pagination);
+            const [employees, total] = await this.service.getAll(req.query);
             res.json({
                 data: employees, total
             })
@@ -119,6 +119,16 @@ export class EmployeeController{
         }
     }
 
+    public getPublic = async(req:Request, res: Response, next: NextFunction) => {
+        const {employee_id} = req.params;
+        try {
+            const employee = await this.service.getPublicEmployee(employee_id);
+            res.json(employee)
+        } catch (error) {
+            next(error);
+        }
+    }
+
     public update = async(req:Request, res: Response, next: NextFunction) => {
         const {employee_id} = req.params;
         const updateDTO = req.body;
@@ -139,4 +149,48 @@ export class EmployeeController{
             next(error);
         }
     }
+
+    // TODO Implementar con correo y hacer ruta
+    // public passwordReset = async(req:Request, res: Response, next: NextFunction) => {
+    //     const {employee_id} = req.params;
+    //     try {
+    //         const employee = await this.service.update(employee_id, req.user);
+    //         res.json(employee);
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
+
+    // !
+    public toggleStatus = async(req:Request, res: Response, next: NextFunction) => {
+        const {employee_id} = req.params;
+        try {
+            const employee = await this.service.toggleStatus(employee_id, req.user);
+            res.json(employee);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    
+
+    public changePassword = async(req:Request, res: Response, next: NextFunction) => {
+        const body = req.body;
+        try {
+            const employee = await this.service.changePassword(body, req.user);
+            res.json(employee);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public myInfo = async(req:Request, res: Response, next: NextFunction) => {
+        try {
+            const employee = await this.service.myInfo( req.user);
+            res.json(employee);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }

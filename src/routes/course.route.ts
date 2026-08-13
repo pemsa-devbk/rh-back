@@ -31,19 +31,19 @@ export class CourseRoute {
     }
 
     private initialize(){
-        this.router.post('/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(CreateCourseDTO)], this.controller.create);
-        this.router.get('/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getAll);
-        this.router.get('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByID);
-        this.router.delete('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.delete);
-        this.router.patch('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(UpdateCourseDTO)], this.controller.update);
+        this.router.post('/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateCourseDTO)], this.controller.create);
+        this.router.get('/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll);
+        this.router.get('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByID);
+        this.router.delete('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete);
+        this.router.patch('/courses/:course_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateCourseDTO)], this.controller.update);
 
         // * Relaciones
-        this.router.post('/courses/:course_id/employees/:employee_id/proof', [authentication, validArchivo, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.uploadProof);
-        this.router.get('/courses/:course_id/employees/:employee_id/proof', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.donwloadProof);
+        this.router.post('/courses/:course_id/employees/:employee_id/proof', [authentication, validArchivo, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.uploadProof);
+        this.router.get('/courses/:course_id/employees/:employee_id/proof', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.donwloadProof);
 
-        this.router.get('/employees/:employee_id/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.getByEmployee);
+        this.router.get('/employees/:employee_id/courses', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getByEmployee);
 
-        this.router.post('/courses/:course_id/users', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER]), validationMiddleware(AssignUsersToCourseDTO)], this.controller.assignUsers);
-        this.router.delete('/courses/:course_id/users/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.MANAGER, validRoles.SUPER_USER])], this.controller.deleteUser);
+        this.router.post('/courses/:course_id/users', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(AssignUsersToCourseDTO)], this.controller.assignUsers);
+        this.router.delete('/courses/:course_id/users/:user_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.deleteUser);
     }
 }

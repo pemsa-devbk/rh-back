@@ -128,7 +128,6 @@ export const createSignature = async (user: UserToSignature, configSignature: Cr
     drawMultilineText(ctx, signature.text_third_section, 60, 260, 480, { align: 'center', lineHeight: 10 });
 
     // paintText(ctx, signature.text_third_section, 260, 10)
-
     return canvas.toBuffer('image/png');
 }
 

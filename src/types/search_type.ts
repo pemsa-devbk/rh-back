@@ -1,6 +1,13 @@
-export type ColumnType = "text" | "number" | "date" | "boolean";
+export type ColumnType = "text" | "number" | "date" | "boolean" | "enum";
+export type Operators = "" | "like" | "eq" | "gt" | "gte" | "lt" | "lte" | "from" | "to" | "day" | "month" | "year" | "in";
 
-export interface ColumnConfig {
+export interface ColumnConfig{
+  type: ColumnType;
+  column: string;
+  default: Operators;
+}
+
+export interface ColumnConfig2 {
   type: ColumnType;
   alias: string; 
 }

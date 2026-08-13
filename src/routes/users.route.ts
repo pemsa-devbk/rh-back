@@ -3,7 +3,7 @@ import { UserController } from "../controllers/users.controller";
 import { autorizationCheck } from "../middlewares/autorization.middleware";
 import { validRoles } from "../types/enums/roles";
 import { authentication } from "../middlewares/auth.middleware";
-import multer from 'multer';
+// import multer from 'multer';
 import { validArchivo } from "../middlewares/validationFile.middleware";
 import { validationMiddleware } from "../middlewares/validation.middleware";
 
@@ -25,18 +25,18 @@ function isImage(mimetype: string) {
  */
 export class UserRoute {
 
-    private upload = multer({
-        storage: multer.memoryStorage(),
-        fileFilter(req, file, callback) {
-            if (['foto', 'firma'].includes(file.fieldname) && !isImage(file.mimetype)) {
-                return callback(new Error(`El campo "${file.fieldname}" debe ser una imagen.`));
-            }
-            callback(null, true);
-        },
-        limits: {
-            fileSize: 5 * 1024 * 1024 // Máx 5MB
-        }
-    });
+    // private upload = multer({
+    //     storage: multer.memoryStorage(),
+    //     fileFilter(req, file, callback) {
+    //         if (['foto', 'firma'].includes(file.fieldname) && !isImage(file.mimetype)) {
+    //             return callback(new Error(`El campo "${file.fieldname}" debe ser una imagen.`));
+    //         }
+    //         callback(null, true);
+    //     },
+    //     limits: {
+    //         fileSize: 5 * 1024 * 1024 // Máx 5MB
+    //     }
+    // });
 
     constructor(
         public router = Router(),

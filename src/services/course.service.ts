@@ -43,7 +43,7 @@ export class CourseService {
         const { take, skip, search } = pagination;
 
         const query = this.courseRepository.createQueryBuilder("course")
-            .loadRelationCountAndMap("course.total_users", "course.courseUsers");
+            .loadRelationCountAndMap("course.total_users", "course.courseEmployee");
         if (search) query.where("course.name LIKE :search", { search: `%${search}%` });
         query.take(take).skip(skip)
 
@@ -104,7 +104,7 @@ export class CourseService {
         const file = proofs.find(proof => proof.includes(`${employee_id}_${course_id}.`));
         if (!file) throw 'Archivo no encontrado';
         const dirFile = join(userDir, file);
-        const mimeType = mime.lookup(file) || 'application/octet-stream';
+        const mimeType = mime.getType(file) || 'application/octet-stream';
         return [file, dirFile, mimeType];
     }
 
