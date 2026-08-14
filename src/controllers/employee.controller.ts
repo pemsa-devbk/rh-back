@@ -19,9 +19,9 @@ export class EmployeeController{
     }
 
     public getAll = async(req:Request, res: Response, next: NextFunction) => {
-        // const pagination = plainToInstance(PaginationDto, req.query);
+        const pagination = plainToInstance(PaginationDto, req.query, {enableImplicitConversion: true});
         try {
-            const [employees, total] = await this.service.getAll(req.query);
+            const [employees, total] = await this.service.getAll(pagination);
             res.json({
                 data: employees, total
             })
@@ -31,7 +31,7 @@ export class EmployeeController{
     }
 
      public getByPosition = async(req:Request, res: Response, next: NextFunction) => {
-        const pagination = plainToInstance(PaginationDto, req.query);
+        const pagination = plainToInstance(PaginationDto, req.query,{enableImplicitConversion: true});
         const {position_id} = req.params;
         try {
             const [employees, total] = await this.service.getByPosition(+position_id, pagination);

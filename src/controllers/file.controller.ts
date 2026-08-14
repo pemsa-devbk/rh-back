@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { FileService } from '../services/file.service';
-import { SearchFile } from '../Dto/file/SearchFile.dto';
 
 
 export class FileController {
@@ -9,7 +8,7 @@ export class FileController {
     ) { }
 
     public getAll = async(req:Request, res: Response, next: NextFunction) => {
-        const query = req.validatedQuery as SearchFile;
+        const query = req.validatedQuery;
         try {
             const files = await this.fileService.getAll(query);
             res.json(files)

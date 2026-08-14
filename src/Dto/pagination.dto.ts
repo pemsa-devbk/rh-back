@@ -1,13 +1,6 @@
-import { IsDateString, IsInt, IsOptional, IsString, Min, ValidateIf } from "class-validator";
+import { IsInt, IsOptional, IsString, Min } from "class-validator";
 
-export class SearchDTO {
-    @IsOptional()
-    @IsString()
-    search?: string;
-
-    @IsOptional()
-    @IsString()
-    searchKey?: string;
+export class OrderDTO {
 
     @IsOptional()
     @IsString()
@@ -17,19 +10,11 @@ export class SearchDTO {
     @IsString()
     orderDirection: "ASC" | "DESC" = "ASC";
 
-    @IsOptional()
-    @IsDateString({}, { message: "dateFrom debe tener formato YYYY-MM-DD" })
-    dateFrom?: string;
-
-    // Solo se valida si dateFrom fue enviado
-    @ValidateIf((o) => !!o.dateFrom)
-    @IsOptional()
-    @IsDateString({}, { message: "dateTo debe tener formato YYYY-MM-DD" })
-    dateTo?: string;
 }
 
-export class PaginationDto extends SearchDTO {
-
+export class PaginationDto extends OrderDTO {
+    // * Eliminar
+    search: string; 
     @IsOptional()
     @Min(1)
     @IsInt({ message: "La cantidad de datos a obtener debe ser entero" })

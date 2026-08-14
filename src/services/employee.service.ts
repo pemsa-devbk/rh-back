@@ -19,7 +19,8 @@ import { CustomError } from "../utils/error";
 import { UpdateEmployeeDTO, UpdatePasswordDTO } from "../Dto/user/updateEmployee.dto";
 import { StatusUser } from "../types/enums/status_user";
 import { ColumnTypeMap } from "../types/search_type";
-import { applyQueryFilters2 } from "../utils/applySearch";
+import { applyQueryFilters } from "../utils/applySearch";
+import { Office } from '../db/entities/office.entity';
 
 enum EmployeeQueryContext {
     FROM_ENTERPRISE = 'FROM_ENTERPRISE', // Desde /enterprises/:id/employees -> Office + department + area + position + employee
@@ -31,19 +32,7 @@ enum EmployeeQueryContext {
     FROM_GENERAL = 'FROM_GENERAL', // Desde /employees -> enterpise + Office + department + area + position + employee
 }
 
-const EMPLOYEE_COLUMNS_TYPES: ColumnTypeMap<Employee> = {
-    // * entidad principal
-    name: { type: 'text', column: 'user.name', default: 'like' },
-    salary: {type: 'number', column: 'employee.salary', default: 'eq'},
-    birthdate: { type: 'date', column: 'employee.birthdate', default: 'eq' },
-    department_name: { type: 'text', column: 'department.name', default: 'like' },
-    area_name: { type: 'text', column: 'area.name', default: 'like' },
-    // valid_mime_types: { type: 'text', alias: 'file' },
-    // description: { type: 'text', alias: 'file' },
-    // created_at: { type: 'date', alias: 'file' },
-    // is_active: { type: 'boolean', alias: 'file' },
-    // is_required: { type: 'boolean', alias: 'file' }
-};
+
 // TODO Al crear el usuario crear la firma de correo y verificar contraseña
 export class EmployeeService {
 
@@ -93,19 +82,17 @@ export class EmployeeService {
         });
     }
 
-    public async getAll(pagination: any) {
+    public async getAll(pagination: PaginationDto) {
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery();
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
+
         const query = this.getQuery();
-        applyQueryFilters2(query, pagination, EMPLOYEE_COLUMNS_TYPES)
-        console.log(query.getQuery())
-        const emp = await query.getRawMany();
-        return [emp, 10];
-        const { skip, take, search } = pagination;
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        applyQueryFilters(query, moreParams, columsQuery)
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search && { user: { name: Like(`%${search}%`) } }
-            }),
-            query.take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
@@ -138,11 +125,11 @@ export class EmployeeService {
         return this.getOne(employee_id);
     }
 
-    public async toggleStatus(employee_id: string, userSession: User){
+    public async toggleStatus(employee_id: string, userSession: User) {
         const employee = await this.findOneOrFail(employee_id);
-        if(employee.status === StatusUser.vacaciones) throw new CustomError(`Espere a que el periodo de vacaciones del empleado ${employee.name} termine`, 401);
+        if (employee.status === StatusUser.vacaciones) throw new CustomError(`Espere a que el periodo de vacaciones del empleado ${employee.name} termine`, 401);
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
-            await transactionalEntityManager.update(Employee, {employee_id}, {status: (employee.status === StatusUser.activo) ? StatusUser.baja : StatusUser.activo});
+            await transactionalEntityManager.update(Employee, { employee_id }, { status: (employee.status === StatusUser.activo) ? StatusUser.baja : StatusUser.activo });
             await transactionalEntityManager.insert(Binnacle, {
                 modified_user_id: employee_id,
                 modifier_user_id: userSession.user_id,
@@ -152,11 +139,11 @@ export class EmployeeService {
         })
     }
 
-    public async changePassword(passwordDTO: UpdatePasswordDTO, userSession: User){
-        const {old_password, password} = passwordDTO;
-        if(!bcrypt.compareSync(password, userSession.password)) throw new CustomError("La contraseña no coincide", 401);
+    public async changePassword(passwordDTO: UpdatePasswordDTO, userSession: User) {
+        const { old_password, password } = passwordDTO;
+        if (!bcrypt.compareSync(password, userSession.password)) throw new CustomError("La contraseña no coincide", 401);
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
-            await transactionalEntityManager.update(User, {user_id: userSession.user_id}, { password: bcrypt.hashSync(old_password, 10)});
+            await transactionalEntityManager.update(User, { user_id: userSession.user_id }, { password: bcrypt.hashSync(old_password, 10) });
 
             await transactionalEntityManager.insert(Binnacle, {
                 modified_user_id: userSession.user_id,
@@ -168,8 +155,8 @@ export class EmployeeService {
         })
     }
 
-    public async myInfo(userSession: User){
-        return  this.getQuery(EmployeeQueryContext.FROM_GENERAL)
+    public async myInfo(userSession: User) {
+        return this.getQuery(EmployeeQueryContext.FROM_GENERAL)
             .where('employee.user_id = :employee_id', { employee_id: userSession.user_id })
             .getRawOne();
     }
@@ -181,79 +168,101 @@ export class EmployeeService {
     }
 
     public async getByPosition(position_id: number, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_POSITION);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_POSITION);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.where('employee.position_id = :position_id', { position_id })
+        applyQueryFilters(query, moreParams, columsQuery)
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, position_id } : { position_id }
-            }),
-            query.andWhere('employee.position_id = :position_id', { position_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
 
     public async getByArea(area_id: number, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_AREA);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_AREA);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.andWhere('position.area_id = :area_id', { area_id });
+        applyQueryFilters(query, moreParams, columsQuery)
+
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, position: { area_id } } : { position: { area_id } }
-            }),
-            query.andWhere('position.area_id = :area_id', { area_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
+
         return [employees, total];
     }
 
     public async getByDepartment(department_id: number, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_DEPARTMENT);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_DEPARTMENT);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.andWhere('area.department_id = :department_id', { department_id });
+
+        applyQueryFilters(query, moreParams, columsQuery)
+
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, position: { area: { department_id } } } : { position: { area: { department_id } } }
-            }),
-            query.andWhere('area.department_id = :department_id', { department_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
 
     public async getByOffice(office_id: number, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_OFFICE);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_OFFICE);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.andWhere('department.office_id = :office_id', { office_id });
+
+        applyQueryFilters(query, moreParams, columsQuery)
+
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, position: { area: { department: { office_id } } } } : { position: { area: { department: { office_id } } } }
-            }),
-            query.andWhere('department.office_id = :office_id', { office_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
 
     public async getByEnterprise(enterprise_id: string, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_ENTERPRISE);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_ENTERPRISE);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.andWhere('office.enterprise_id = :enterprise_id', { enterprise_id });
+
+        applyQueryFilters(query, moreParams, columsQuery)
+
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, position: { area: { department: { office: { enterprise_id } } } } } : { position: { area: { department: { office: { enterprise_id } } } } }
-            }),
-            query.andWhere('office.enterprise_id = :enterprise_id', { enterprise_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
 
     public async getByCourse(course_id: number, pagination: PaginationDto) {
-        const { skip, take, search } = pagination;
+        const { skip, take, orderDirection, orderBy, ...moreParams } = pagination;
+        let order = orderBy;
+        const columsQuery = this.getColumnsQuery(EmployeeQueryContext.FROM_COURSE);
+        if (!Object.keys(columsQuery).includes(orderBy)) order = 'date_entry';
         const query = this.getQuery(EmployeeQueryContext.FROM_COURSE);
-        if (search) query.where("user.name LIKE :search", { search: `%${search}%` });
+        query.andWhere('courseEmployee.course_id = :course_id', { course_id });
+
+        applyQueryFilters(query, moreParams, columsQuery)
+
         const [total, employees] = await Promise.all([
-            this.repository.count({
-                where: search ? { user: { name: Like(`%${search}%`) }, courseEmployees: { course_id } } : { courseEmployees: { course_id } }
-            }),
-            query.andWhere('courseEmployee.course_id = :course_id', { course_id }).take(take).skip(skip).getRawMany()
+            query.getCount(),
+            query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
         return [employees, total];
     }
@@ -280,8 +289,8 @@ export class EmployeeService {
             .addSelect('enterprise.enterprise_id', 'enterprise_id')
             .addSelect('enterprise.name', 'enterprise_name')
             .where('employee.user_id = :employee_id', { employee_id });
-        const employee = await  query.getRawOne();
-        if(!employee) throw new CustomError("Solicitud no encontrada", 404);
+        const employee = await query.getRawOne();
+        if (!employee) throw new CustomError("Solicitud no encontrada", 404);
         return employee;
     }
 
@@ -359,7 +368,72 @@ export class EmployeeService {
             default: break;
         }
         return query;
+    }
 
+    private getColumnsQuery(context: EmployeeQueryContext = EmployeeQueryContext.FROM_GENERAL): ColumnTypeMap<Employee> {
+        const EMPLOYEE_COLUMNS_TYPES: ColumnTypeMap<Employee> = {
+            // * entidad principal
+            name: { type: 'text', column: 'user.name', default: 'like' },
+            salary: { type: 'number', column: 'employee.salary', default: 'eq' },
+            birthdate: { type: 'date', column: 'employee.birthdate', default: 'eq' },
+            gender: { column: 'employee.gender', type: 'text', default: 'eq' },
+            status: { column: 'employee.status', type: 'number', default: 'eq' },
+            num_children: { column: 'employee.num_children', type: 'number', default: 'eq' },
+            vacation_days: { column: 'employee.vacation_days', type: 'number', default: 'eq' },
+            have_uniform: { column: 'employee.have_uniform', type: 'boolean', default: 'eq' },
+            marital_status: { column: 'employee.marital_status', type: 'text', default: 'eq' },
+            place_registration: { column: 'employee.place_registration', type: 'text', default: 'like' },
+            date_entry: { column: 'employee.date_entry', type: 'date', default: 'eq' },
+            email: { column: 'employee.email', type: 'text', default: 'like' },
+            cell_phone: { column: 'employee.cell_phone', type: 'text', default: 'like' },
+            have_alimony: { column: 'employee.have_alimony', type: 'boolean', default: 'eq' },
+            update_at: { column: 'user.update_at', type: 'date', default: 'eq' },
+            deleted_at: { column: 'user.deleted_at', type: 'date', default: 'eq' },
+            boss_name: { column: 'boss_user.name', type: 'text', default: 'like' },
+        };
+        switch (context) {
+            case EmployeeQueryContext.FROM_GENERAL:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    position_name: { column: 'position.name', type: 'text', default: 'like' },
+                    area_name: { type: 'text', column: 'area.name', default: 'like' },
+                    department_name: { type: 'text', column: 'department.name', default: 'like' },
+                    office_name: { column: 'office.name', type: 'text', default: 'like' },
+                    enterprise_name: { column: 'enterprise.name', type: 'text', default: 'like' }
+                };
+            case EmployeeQueryContext.FROM_ENTERPRISE:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    position_name: { column: 'position.name', type: 'text', default: 'like' },
+                    area_name: { type: 'text', column: 'area.name', default: 'like' },
+                    department_name: { type: 'text', column: 'department.name', default: 'like' },
+                    office_name: { column: 'office.name', type: 'text', default: 'like' },
+                };
+            case EmployeeQueryContext.FROM_OFFICE:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    position_name: { column: 'position.name', type: 'text', default: 'like' },
+                    area_name: { type: 'text', column: 'area.name', default: 'like' },
+                    department_name: { type: 'text', column: 'department.name', default: 'like' },
+                };
+            case EmployeeQueryContext.FROM_DEPARTMENT:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    position_name: { column: 'position.name', type: 'text', default: 'like' },
+                    area_name: { type: 'text', column: 'area.name', default: 'like' },
+                };
+            case EmployeeQueryContext.FROM_AREA:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    position_name: { column: 'position.name', type: 'text', default: 'like' },
+                };
+            case EmployeeQueryContext.FROM_COURSE:
+                return {
+                    ...EMPLOYEE_COLUMNS_TYPES,
+                    have_proof: { column: 'courseEmployee.have_proof', type: 'boolean', default: 'eq' }
+                };
+            default: return EMPLOYEE_COLUMNS_TYPES;
+        }
     }
 
 

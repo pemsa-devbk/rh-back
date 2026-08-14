@@ -3,8 +3,7 @@ import { authentication } from "../middlewares/auth.middleware";
 import { autorizationCheck } from "../middlewares/autorization.middleware";
 import { validRoles } from "../types/enums/roles";
 import { FileController } from "../controllers/file.controller";
-import { validationMiddleware, validationQuery } from "../middlewares/validation.middleware";
-import { SearchFile } from "../Dto/file/SearchFile.dto";
+import { validationMiddleware } from "../middlewares/validation.middleware";
 import { CreateFileDTO } from "../Dto/file/createFile.dto";
 import { UpdateFileDTO } from "../Dto/file/updateFile.dto";
 import { UploadFileDTO } from "../Dto/file/uploadFile.dto";
@@ -20,7 +19,7 @@ export class FileRoute {
 
     private initialize() {
         this.router.post('/files', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(CreateFileDTO)], this.controller.create);
-        this.router.get('/files', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationQuery(SearchFile)], this.controller.getAll);
+        this.router.get('/files', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.getAll);
         this.router.patch('/files/:file_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN]), validationMiddleware(UpdateFileDTO)], this.controller.update);
         this.router.delete('/files/:file_id', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.delete);
         this.router.patch('/files/:file_id/status', [authentication, autorizationCheck([validRoles.ADMIN, validRoles.SUPER_ADMIN])], this.controller.changeStatus);

@@ -6,9 +6,7 @@ import { appDataSource } from '../db/dataBase';
 import { File } from '../db/entities/file.entity';
 import { UpdateFileDTO } from '../Dto/file/updateFile.dto';
 import { CustomError } from '../utils/error';
-import { SearchFile } from '../Dto/file/SearchFile.dto';
 import { ColumnTypeMap } from '../types/search_type';
-import { applySearch } from '../utils/applySearch';
 import { FileArray } from 'express-fileupload';
 import { EmployeeFiles } from '../db/entities/employee_files.entity';
 import { UploadFileDTO } from '../Dto/file/uploadFile.dto';
@@ -21,13 +19,13 @@ import { createSignature } from '../utils/create_signature';
 
 const FILE_COLUMNS_TYPES: ColumnTypeMap<File> = {
     // * entidad principal
-    name: { type: 'text', alias: 'file' },
-    key: { type: 'text', alias: 'file' },
-    valid_mime_types: { type: 'text', alias: 'file' },
-    description: { type: 'text', alias: 'file' },
-    created_at: { type: 'date', alias: 'file' },
-    is_active: { type: 'boolean', alias: 'file' },
-    is_required: { type: 'boolean', alias: 'file' }
+    name: { type: 'text', column: 'file', default: 'day' },
+    key: { type: 'text', column: 'file', default: 'day' },
+    valid_mime_types: { type: 'text', column: 'file', default: 'day' },
+    description: { type: 'text', column: 'file', default: 'day' },
+    created_at: { type: 'date', column: 'file', default: 'day' },
+    is_active: { type: 'boolean', column: 'file', default: 'day' },
+    is_required: { type: 'boolean', column: 'file', default: 'day' }
 };
 const UPLOADS_DIR_USERS = join(__dirname, "..", "..", "uploads", "employees");
 
@@ -58,16 +56,17 @@ export class FileService {
         return { ...file, is_active: !file.is_active };
     }
 
-    public async getAll(searchDTO: SearchFile) {
+    public async getAll(searchDTO: any) {
         const { orderBy = 'created_at', orderDirection } = searchDTO;
         const query = this.repository.createQueryBuilder('file');
-        applySearch(query, searchDTO, FILE_COLUMNS_TYPES);
-        const orderConfig = FILE_COLUMNS_TYPES[orderBy];
-        const orderField = orderConfig
-            ? `${orderConfig.alias}.${orderBy}` // columna registrada en el mapa
-            : `file.${orderBy}`;
+        // applySearch(query, searchDTO, FILE_COLUMNS_TYPES);
+        // const orderConfig = FILE_COLUMNS_TYPES[orderBy];
+        // const orderField = orderConfig
+        //     ? `${orderConfig.alias}.${orderBy}` // columna registrada en el mapa
+        //     : `file.${orderBy}`;
 
-        return query.orderBy(orderField, orderDirection).getMany();
+        // return query.orderBy(orderField, orderDirection).getMany();
+        return query.getMany();
     }
 
     public async delete(file_id: number) {
@@ -138,14 +137,14 @@ export class FileService {
         return [file, dirFile, mimeType];
     }
 
-    public getPhotoEmployee( employee_id: string): [Buffer<ArrayBufferLike>, string] {
+    public getPhotoEmployee(employee_id: string): [Buffer<ArrayBufferLike>, string] {
         const employeeDir = join(UPLOADS_DIR_USERS, employee_id, 'docs');
         const docs = readdirSync(employeeDir);
         const file = docs.find(doc => doc.startsWith(`FILE_1.`));
         if (!file) throw new CustomError('Archivo no encontrado', 400);
         const dirFile = join(employeeDir, file);
         const mimeType = mime.lookup(file) || 'application/octet-stream';
-        const buffer =  readFileSync(dirFile);
+        const buffer = readFileSync(dirFile);
         return [buffer, mimeType];
     }
 
@@ -167,7 +166,7 @@ export class FileService {
         const employee = await this.userRepository.findOne({
             where: { user_id: employee_id }, relations: {
                 employee: {
-                    enterpriseInformation: true, position: { area: { department: { office: { enterprise: {signature: true} } } } },
+                    enterpriseInformation: true, position: { area: { department: { office: { enterprise: { signature: true } } } } },
                 }
             }
         });
@@ -185,13 +184,13 @@ export class FileService {
         return [employee, dataBuffer];
     }
 
-    public async getSignature(employee_id: string):Promise<[User, string]> {
+    public async getSignature(employee_id: string): Promise<[User, string]> {
         const employee = await this.userRepository.findOne({
             where: { user_id: employee_id }
         });
         if (!employee) throw new CustomError("Empleado no encontrado", 400);
         const pathSignature = join(UPLOADS_DIR_USERS, employee_id, 'docs', 'signature.png');
-        if(!existsSync(pathSignature)) throw new CustomError("No existe el archivo intente volver a crearlo",400);
+        if (!existsSync(pathSignature)) throw new CustomError("No existe el archivo intente volver a crearlo", 400);
         return [employee, pathSignature];
     }
 
