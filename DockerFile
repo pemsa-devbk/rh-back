@@ -1,26 +1,67 @@
-#Etapa 1. Dependencias de desarrollo
-FROM node:alpine as dev-dep
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install
 
-#Etapa 2. Build 
-FROM node:alpine as build
+# Etapa 1. Base con pnpm y Node.js 22
+FROM ghcr.io/pnpm/pnpm:11.18.0 AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="${PNPM_HOME}:${PATH}"
+
 WORKDIR /app
-COPY --from=dev-dep /app/node_modules ./node_modules
+
+# Instala Node.js 22 mediante pnpm
+RUN pnpm env use --global 22 \
+    && node --version \
+    && pnpm --version
+
+
+# Etapa 2. Dependencias de desarrollo
+FROM base AS deps
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3 \
+        make \
+        g++ \
+        pkg-config \
+        libcairo2-dev \
+        libpango1.0-dev \
+        libjpeg-dev \
+        libgif-dev \
+        librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+RUN pnpm install --frozen-lockfile
+
+
+# Etapa 3. Build y dependencias de producción
+FROM deps AS build
+
 COPY . .
-RUN npm run build
 
-# Etapa 3. Dependencias de produccion
-FROM node:alpine as prod-dep
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install --production 
+RUN pnpm run build
 
-#Etapa 4. Crear la imagen final
-FROM node:alpine as prod
-WORKDIR /app
-COPY --from=build /app/dist ./dist
-COPY --from=prod-dep /app/node_modules ./node_modules
+RUN pnpm prune --prod
+
+
+# Etapa 4. Imagen final
+FROM base AS prod
+
+ENV NODE_ENV=production
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libcairo2 \
+        libpango-1.0-0 \
+        libjpeg62-turbo \
+        libgif7 \
+        librsvg2-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build --chown=node:node /app/package.json ./package.json
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+
+USER node
+
 CMD ["node", "dist/index.js"]
-

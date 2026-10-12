@@ -22,7 +22,8 @@ export class EnterpriseInformation {
     // * Relaciones
     @OneToOne(
         () => Employee,
-        (employee) => employee.enterpriseInformation
+        (employee) => employee.enterpriseInformation,
+        {onDelete: 'CASCADE'}
     )
     @JoinColumn({ name: 'employee_id' })
     employee: Employee;

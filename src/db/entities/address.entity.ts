@@ -20,7 +20,8 @@ export class Address {
     // * Relaciones
     @OneToOne(
         () => Employee,
-        (employee) => employee.address
+        (employee) => employee.address,
+        {onDelete: 'CASCADE'}
     )
     @JoinColumn({ name: 'employee_id' })
     employee: Employee;

@@ -19,7 +19,8 @@ export class License {
     // * Relaciones
     @OneToOne(
         () => Employee,
-        (employee) => employee.license
+        (employee) => employee.license,
+        {onDelete: 'CASCADE'}
     )
     @JoinColumn({ name: 'employee_id' })
     employee: Employee;

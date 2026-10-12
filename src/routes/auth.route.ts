@@ -1,13 +1,22 @@
 import { Router } from "express";
 import { validationMiddleware } from "../middlewares/validation.middleware";
 import { AuthDTO } from "../Dto/auth/auth.dto";
-import { authLogin, checkLogin } from "../controllers/auth.controller";
+import { AuthController } from "../controllers/auth.controller";
 import { authentication } from "../middlewares/auth.middleware";
 
 
-const router = Router();
+export class AuthRoute {
 
-router.post('/login', [validationMiddleware(AuthDTO)], authLogin)
-router.get('/check', [authentication], checkLogin)
+    constructor(
+        public router = Router(),
+        private readonly controller = new AuthController()
+    ) {
+        this.initialize();
+    }
 
-export default router;
+    private initialize() {
+        this.router.post('/auth/login', [validationMiddleware(AuthDTO)], this.controller.login)
+        this.router.get('/auth/check', [authentication], this.controller.check)
+        this.router.post('/auth/refresh', this.controller.refresh)
+    }
+}

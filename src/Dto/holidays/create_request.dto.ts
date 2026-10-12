@@ -4,7 +4,7 @@ export class CreateRequestHolidaysDto {
     @IsDateString({ strict: true }, {
         message: "Debe de ingresar al menos un día de vacaciones", each: true
     })
-    days: Date[];
+    days: string[];
 
     @IsOptional()
     @IsString()

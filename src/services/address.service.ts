@@ -16,6 +16,10 @@ export class AddressService{
     }
 
     public async update(employee_id: string, updateDTO: UpdateAddressDTO): Promise<Address>{
+        // return this.repository.save({
+        //     employee_id,
+        //     ...updateDTO, 
+        // })
         const address = await this.getOne(employee_id);
         if(!address) throw new CustomError('No existe registro de dirección, primero creé uno', 400);
         await this.repository.update({employee_id}, updateDTO);

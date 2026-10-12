@@ -1,19 +1,20 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { CreateUserDto } from "../Dto/user/createUser.dto";
 import { plainToInstance } from "class-transformer";
 import { appDataSource } from "../db/dataBase";
 import { User } from "../db/entities/user.entity";
 import bcrypt from 'bcrypt'
 import { validRoles } from "../types/enums/roles";
+import { SeedService } from "../services/seed.service";
 
 
 export const seedUser = async (req: Request, res: Response) => {
     // lógica de negocio (ie, todo lo que hace mi función)
     //se pasa a text plano y sacamos el password de la function de seedUser
-    const seedUser  = plainToInstance(CreateUserDto, req.body);
+    const seedUser = plainToInstance(CreateUserDto, req.body);
     //Se crea el repositorio!!
     const userRepository = appDataSource.getRepository(User);
-    
+
 
     //Se verifica si el usuario existe! con el repositorio
     const userFind = await userRepository.find();
@@ -65,4 +66,55 @@ export const seedUser = async (req: Request, res: Response) => {
     }
 
 
+}
+
+
+export class SeedController {
+    constructor(
+        private readonly seedService = new SeedService()
+    ) { }
+
+    public loadDepartments = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const departments = await this.seedService.loadDepartments();
+            res.json(departments);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public loadAreas = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const areas = await this.seedService.loadAreas();
+            res.json(areas);
+        } catch (error) {
+            next(error);
+        }
+    }
+    public loadPositions = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const positions = await this.seedService.loadPositions();
+            res.json(positions);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public loadUsers = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const users = await this.seedService.loadUsers();
+            res.json(users);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    public copyFiles = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const users = await this.seedService.copyFiles();
+            res.json(users);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

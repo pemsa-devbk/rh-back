@@ -16,6 +16,10 @@ export class EmployeeRoute{
     }
 
     private initialize(){
+        // * Rutas personales del usuario logueado
+        this.router.put('/employees/me/password', [authentication, autorizationCheck([validRoles.EMPLOYEE, validRoles.ADMIN]), validationMiddleware(UpdatePasswordDTO)], this.controller.changePassword)
+        this.router.get('/me', [authentication, autorizationCheck([validRoles.EMPLOYEE, validRoles.ADMIN])], this.controller.myInfo)
+
         this.router.post('/employees', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN]), validationMiddleware(CreateEmployeeDTO)], this.controller.create);
         this.router.get('/employees/:employee_id', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN])], this.controller.getOne)
         this.router.delete('/employees/:employee_id', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN])], this.controller.delete)
@@ -23,10 +27,6 @@ export class EmployeeRoute{
         // TODO falta implementar
         // this.router.post('/employees/:user_id/password-reset', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN])], this.controller.passwordReset)
         this.router.post('/employees/:user_id/toggle-status', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN])], this.controller.toggleStatus);
-
-        // * Rutas personales del usuario logueado
-        this.router.put('/employees/me/password', [authentication, autorizationCheck([validRoles.EMPLOYEE, validRoles.ADMIN]), validationMiddleware(UpdatePasswordDTO)], this.controller.changePassword)
-        this.router.get('/employees/me', [authentication, autorizationCheck([validRoles.EMPLOYEE, validRoles.ADMIN]), validationMiddleware(UpdatePasswordDTO)], this.controller.myInfo)
 
         // * Rutas relacionadas (+1 nivel)
         this.router.get('/enterprises/:enterprise_id/employees', [authentication, autorizationCheck([validRoles.SUPER_ADMIN, validRoles.ADMIN])], this.controller.getByEnterprise );

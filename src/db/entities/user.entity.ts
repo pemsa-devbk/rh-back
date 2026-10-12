@@ -1,7 +1,6 @@
 import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Binnacle } from "./binnacle.entity";
 import { Employee } from "./employee.entity";
-import { UserRole } from "./user_role.entity";
 import { EmployeeFiles } from "./employee_files.entity";
 import { Rol } from "./roles.entity";
 
@@ -17,7 +16,7 @@ export class User {
     name: string;
 
     @Column({
-        select: false
+        select: false, nullable: true
     })
     password: string;
 

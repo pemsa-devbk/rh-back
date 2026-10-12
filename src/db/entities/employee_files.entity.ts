@@ -36,7 +36,8 @@ export class EmployeeFiles{
 
     @ManyToOne(
         () => Employee,
-        (employee) => employee.employeeFiles
+        (employee) => employee.employeeFiles,
+        {onDelete: 'CASCADE'}
     )
     @JoinColumn({name: 'employee_id'})
     employee: Employee;

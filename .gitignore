@@ -3,10 +3,9 @@
 .env
 combined.log
 
-/src/certs
 /public/img
-/public/data_bank.csv
-/public/data.csv
+/certs
+/SQL_DATA
 
 uploads/
 

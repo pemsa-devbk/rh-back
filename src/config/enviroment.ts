@@ -10,5 +10,6 @@ export const enviroment = {
     DATABASE: process.env.DATABASE,
     API_PATH: process.env.API_PATH,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    NANOBANANA_API_KEY: process.env.NANOBANANA_API_KEY
+    NANOBANANA_API_KEY: process.env.NANOBANANA_API_KEY,
+    NODE_ENV: 'DEV'
 }

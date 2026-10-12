@@ -37,7 +37,8 @@ export class MedicalData {
     // * Relaciones
     @OneToOne(
         () => Employee,
-        (employee) => employee.medicalData
+        (employee) => employee.medicalData,
+        {onDelete: 'CASCADE'}
     )
     @JoinColumn({ name: 'employee_id' })
     employee: Employee;

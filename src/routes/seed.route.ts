@@ -1,16 +1,19 @@
 import { Router } from "express";
-import { seedUser } from "../controllers/seed.controller";
-import { validationMiddleware } from "../middlewares/validation.middleware";
+import { SeedController } from "../controllers/seed.controller";
 
-//Se crea un semillero. Esta ruta se ejecutará una única vez
-//Sirve para crear el Admin y nada más.
+export class SeedRoute{
+    constructor(
+        public router = Router(),
+        private readonly controller = new SeedController()
+    ){
+        this.initialize();
+    }
 
-const router = Router();
-
-//creamos la ruta de tipo post
-//[crear y usar la validacion de middleware para crear el usuario]
-//(esto es el DTO para crearUser que pasa como parametro del middleware),
-//añadimos el controlador que maneja la creacion del user
-// router.post ('/', [validationMiddleware(CreateSeedDto)], seedUser)
-
-export default router;
+    private initialize(){
+        this.router.get('/seed/departments', this.controller.loadDepartments);
+        this.router.get('/seed/areas', this.controller.loadAreas);
+        this.router.get('/seed/positions', this.controller.loadPositions);
+        this.router.get('/seed/users', this.controller.loadUsers);
+        this.router.get('/seed/copy-files', this.controller.copyFiles);
+    }
+}

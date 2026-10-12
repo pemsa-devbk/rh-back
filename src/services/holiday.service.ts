@@ -13,7 +13,7 @@ import { SystemConfiguration } from "../db/entities/system_configuration";
 import { HolidaysConfig } from "../db/entities/holidays_config";
 import { PaginationDto } from "../Dto/pagination.dto";
 import { StatusUser } from "../types/enums/status_user";
-import { Between, EntityManager, Not } from "typeorm";
+import { Between, EntityManager, In, Not } from "typeorm";
 import { Position } from "../db/entities/position.entity";
 import { Employee } from "../db/entities/employee.entity";
 import { CustomError } from "../utils/error";
@@ -49,28 +49,38 @@ export class HolidayService {
     public async create(employee_id: string, modifier_id: string, createDto: CreateRequestHolidaysDto) {
         const { days, comment } = createDto;
         const today = dayjs.tz();
+        const sortedDates = this.validateHolidayDays(days);
+
         return await this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
             const employee = await transactionalEntityManager.findOne(Employee, { where: { user_id: employee_id }, relations: { position: true, boss: true, user: true } });
             if (!employee) throw 'Usuario no encontrado';
             // * Validar que no existan vacaciones cruzadas
-            const sortedDates = days.map(d => dayjs.tz(d)).sort((a, b) => a.valueOf() - b.valueOf());
             const maxDate = sortedDates[sortedDates.length - 1];
-            const crossHoliday = await transactionalEntityManager.findOne(HolidayRequest, {
-                where: { employee_id, status: Not(StatusHoliday.cancelado), days: { date: Between(sortedDates[0].toDate(), maxDate.toDate()) } }
-            });
-            if (crossHoliday) throw 'Ya existe un registro de vacaciones entre las fechas solicitadas';
 
-            let status = StatusHoliday.pendiente;
+            const crossHoliday = await transactionalEntityManager
+                .createQueryBuilder(HolidayRequest, 'holiday')
+                .innerJoin('holiday.days', 'day')
+                .where('holiday.employee_id = :employee_id', { employee_id })
+                .andWhere('holiday.status NOT IN (:...statuses)', {
+                    statuses: [
+                        StatusHoliday.CANCELADA,
+                        StatusHoliday.RECHAZADA
+                    ]
+                })
+                .andWhere('day.date IN (:...dates)', {
+                    dates: days
+                })
+                .getExists();
+
+            if (crossHoliday) throw new CustomError('Ya existe un registro de vacaciones entre las fechas solicitadas', 400);
+
+            let status = StatusHoliday.APROBADA;
             // * Registro de vacaciones que ya pasaron
-            if (today.isAfter(maxDate, 'date') || today.isSame(maxDate.add(1, 'day'), 'date')) status = StatusHoliday.finalizada;
+            if (today.isAfter(maxDate, 'date') || today.isSame(maxDate.add(1, 'day'), 'date')) status = StatusHoliday.FINALIZADA;
 
             // * Crear solicitud
             await transactionalEntityManager.update(Employee, { user_id: employee_id }, { vacation_days: (employee.vacation_days - days.length) })
-            const holydayRequest = transactionalEntityManager.create(HolidayRequest, {
-                employee_id,
-                status,
-                comment
-            });
+            const holydayRequest = transactionalEntityManager.create(HolidayRequest, { employee_id, status, comment });
             await transactionalEntityManager.insert(HolidayRequest, holydayRequest);
 
             // * Días de vacaciones
@@ -112,11 +122,12 @@ export class HolidayService {
     public async cancel(employee_id: string, request_holiday_id: number) {
         return this.holidayRequestRepository.manager.transaction(async (transactionalEntityManager) => {
             const holiday = await transactionalEntityManager.findOne(HolidayRequest, { where: { employee_id, request_holiday_id }, relations: { days: true, employee: { user: true } } });
-            if (!holiday) throw 'No hay registro de vacaciones';
-            if (holiday.status === StatusHoliday.cancelado) throw new CustomError("El registro ya ha sido cancelado", 400);
+            if (!holiday) throw new CustomError('No hay registro de vacaciones', 400);
+            if (holiday.status === StatusHoliday.CANCELADA) throw new CustomError("El registro ya ha sido cancelado", 400);
             // TODO Se va a cambiar el status ?
-            await transactionalEntityManager.update(Employee, { user_id: employee_id }, { vacation_days: (holiday.employee.vacation_days + holiday.days.length), status: StatusUser.activo });
-            await transactionalEntityManager.update(HolidayRequest, { request_holiday_id }, { status: StatusHoliday.cancelado });
+            // if (holiday.employee.status === StatusUser.vacaciones)
+            //     await transactionalEntityManager.update(Employee, { user_id: employee_id }, { vacation_days: (holiday.employee.vacation_days + holiday.days.length), status: StatusUser.activo });
+            await transactionalEntityManager.update(HolidayRequest, { request_holiday_id }, { status: StatusHoliday.CANCELADA });
 
             const othersText = this.formatVacationDates(holiday.days);
             return `Se cancelo la solicitud de vacaciones del usuario ${holiday.employee.user.name} para la(s) fecha(s) ${othersText.text}`;
@@ -124,7 +135,6 @@ export class HolidayService {
     }
 
     public async uploadFormat(employee_id: string, request_holiday_id: number, files: FileArray) {
-        console.log(files);
 
         const simpleFile = files['proof'];
         if (Array.isArray(simpleFile)) throw new CustomError('Solo se acepta un archivo como comprobante', 400);
@@ -273,7 +283,7 @@ export class HolidayService {
         doc.line(120, 240, 195, 240);
         doc.text(system.find(us => us.key == 'GG').employee.user.name.toUpperCase(), 157, 245, { align: 'center', maxWidth: 75 });
 
-        return doc.save(`${path}/${holiday.request_holiday_id}.pdf`);
+        return doc.save(`${path}/HOLIDAY_${holiday.request_holiday_id}.pdf`);
     }
 
     private drawRichText(doc: jsPDF, parts: Array<TextRich>, startX: number, startY: number, maxWidth: number, lineHeight: number) {
@@ -359,6 +369,45 @@ export class HolidayService {
             text,
             nextDate: nextDate
         };
+    }
+
+    private validateHolidayDays(days: string[]) {
+        const dates = days.map(date => dayjs(date));
+
+        const hasInvalidDate = dates.some(date => !date.isValid());
+
+        if (hasInvalidDate) throw new CustomError('Se recibió una fecha inválida.', 400);
+
+        const uniqueDates = new Set(
+            dates.map(date => date.format('YYYY-MM-DD'))
+        );
+
+        if (uniqueDates.size !== dates.length) throw new CustomError('No se pueden repetir días en la solicitud.', 400);
+
+        const hasSunday = dates.some(date => date.day() === 0);
+
+        if (hasSunday) throw new CustomError('Las vacaciones no pueden incluir domingos.', 400);
+
+
+        const sortedDates = [...dates].sort(
+            (a, b) => a.valueOf() - b.valueOf()
+        );
+
+        for (let i = 0; i < sortedDates.length - 1; i++) {
+            const current = sortedDates[i];
+            const next = sortedDates[i + 1];
+
+            const expectedNext = current.day() === 6
+                ? current.add(2, 'day')
+                : current.add(1, 'day');
+
+            if (!expectedNext.isSame(next, 'day')) {
+                throw new CustomError(
+                    `Los días de vacaciones deben ser consecutivos. Existe un salto entre ${current.format('YYYY-MM-DD')} y ${next.format('YYYY-MM-DD')}.`, 400
+                );
+            }
+        }
+        return sortedDates;
     }
 
 }

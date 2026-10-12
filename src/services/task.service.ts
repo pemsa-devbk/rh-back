@@ -99,40 +99,40 @@ export class TaskService {
     public async checkHolidays() {
         const today = dayjs.tz();
 
-        const holidaysActive = await this.holidayRequestRepository.find({ where: [{ status: StatusHoliday.pendiente }, { status: StatusHoliday.curso }], relations: { days: true, employee: {user: true} } });
+        // const holidaysActive = await this.holidayRequestRepository.find({ where: [{ status: StatusHoliday.pendiente }, { status: StatusHoliday.curso }], relations: { days: true, employee: {user: true} } });
 
-        const users: Array<Employee> = [];
-        const holidays: Array<HolidayRequest> = [];
-        holidaysActive.forEach(holiday => {
-            const sortedDates = holiday.days.map(d => dayjs.tz(d.date)).sort((a, b) => a.valueOf() - b.valueOf());
-            const minDate = sortedDates[0];
-            const maxDate = sortedDates[sortedDates.length - 1];
-            if (today.isSame(minDate, 'date') || (today.isAfter(minDate, 'date') && today.isBefore(maxDate.add(1, 'day'), 'date'))) {
-                holiday.status = StatusHoliday.curso;
-                holidays.push(holiday);
-                holiday.employee.status = StatusUser.vacaciones;
-                users.push(holiday.employee);
-            } else if (today.isSame(maxDate.add(1, 'day'), 'date') || today.isAfter(maxDate.add(1, 'day'), 'date')) {
-                holiday.status = StatusHoliday.finalizada;
-                holidays.push(holiday);
-                holiday.employee.status = StatusUser.activo;
-                users.push(holiday.employee);
-            }
-        });
+        // const users: Array<Employee> = [];
+        // const holidays: Array<HolidayRequest> = [];
+        // holidaysActive.forEach(holiday => {
+        //     const sortedDates = holiday.days.map(d => dayjs.tz(d.date)).sort((a, b) => a.valueOf() - b.valueOf());
+        //     const minDate = sortedDates[0];
+        //     const maxDate = sortedDates[sortedDates.length - 1];
+        //     if (today.isSame(minDate, 'date') || (today.isAfter(minDate, 'date') && today.isBefore(maxDate.add(1, 'day'), 'date'))) {
+        //         holiday.status = StatusHoliday.curso;
+        //         holidays.push(holiday);
+        //         holiday.employee.status = StatusUser.vacaciones;
+        //         users.push(holiday.employee);
+        //     } else if (today.isSame(maxDate.add(1, 'day'), 'date') || today.isAfter(maxDate.add(1, 'day'), 'date')) {
+        //         holiday.status = StatusHoliday.finalizada;
+        //         holidays.push(holiday);
+        //         holiday.employee.status = StatusUser.activo;
+        //         users.push(holiday.employee);
+        //     }
+        // });
 
-        const queryRunner = appDataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
-        try {
-            await queryRunner.manager.save<Employee>(users);
-            await queryRunner.manager.save<HolidayRequest>(holidays);
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            console.log(error);
+        // const queryRunner = appDataSource.createQueryRunner()
+        // await queryRunner.connect()
+        // await queryRunner.startTransaction()
+        // try {
+        //     await queryRunner.manager.save<Employee>(users);
+        //     await queryRunner.manager.save<HolidayRequest>(holidays);
+        //     await queryRunner.commitTransaction();
+        // } catch (error) {
+        //     console.log(error);
 
-            await queryRunner.rollbackTransaction();
-        } finally {
-            await queryRunner.release()
-        }
+        //     await queryRunner.rollbackTransaction();
+        // } finally {
+        //     await queryRunner.release()
+        // }
     }
 }

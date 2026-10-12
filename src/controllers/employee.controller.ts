@@ -177,16 +177,19 @@ export class EmployeeController{
     public changePassword = async(req:Request, res: Response, next: NextFunction) => {
         const body = req.body;
         try {
-            const employee = await this.service.changePassword(body, req.user);
-            res.json(employee);
+            const msg = await this.service.changePassword(body, req.user);
+            res.json({msg});
         } catch (error) {
             next(error);
         }
     }
 
     public myInfo = async(req:Request, res: Response, next: NextFunction) => {
+        console.log('AHHHHHHHHHHHHHHHH');
         try {
             const employee = await this.service.myInfo( req.user);
+            console.log(employee);
+            
             res.json(employee);
         } catch (error) {
             next(error);

@@ -10,9 +10,8 @@ import { StatusUser } from "../types/enums/status_user";
 
 const jwtOptions: StrategyOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-
     //aqui pondremos la secretKey
-     secretOrKey: readFileSync(join(__dirname,'../', '/certs', 'public.pem'))
+     secretOrKey: readFileSync(join(__dirname,'../','../', 'certs', 'access', 'public.pem'))
 
 }
 
@@ -20,12 +19,13 @@ interface Payload {
     id: string;
 }
 
+
 passport.use( new JwtStragy (jwtOptions, async (payload: Payload, done) => {
     //creamos repository
     const userRepository = appDataSource.getRepository(User);
 
     //buscamos por id, para más inof revisar documentación 
-    const user = await userRepository.findOne({where: {user_id: payload.id}, relations: {employee: true}})
+    const user = await userRepository.findOne({where: {user_id: payload.id}, relations: {employee: true}, select: {employee: true, password: true, name: true, role_id: true, user_id: true }})
 
     if(!user){
         return done ('Usuario no existente', null)

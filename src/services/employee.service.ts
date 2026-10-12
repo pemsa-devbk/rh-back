@@ -14,13 +14,11 @@ import { EnterpriseInformation } from "../db/entities/enterprise_information.ent
 import { License } from "../db/entities/license.entity";
 import { MedicalData } from "../db/entities/medical_data.entity";
 import { PaginationDto } from "../Dto/pagination.dto";
-import { Like } from "typeorm";
 import { CustomError } from "../utils/error";
 import { UpdateEmployeeDTO, UpdatePasswordDTO } from "../Dto/user/updateEmployee.dto";
 import { StatusUser } from "../types/enums/status_user";
 import { ColumnTypeMap } from "../types/search_type";
 import { applyQueryFilters } from "../utils/applySearch";
-import { Office } from '../db/entities/office.entity';
 
 enum EmployeeQueryContext {
     FROM_ENTERPRISE = 'FROM_ENTERPRISE', // Desde /enterprises/:id/employees -> Office + department + area + position + employee
@@ -74,9 +72,9 @@ export class EmployeeService {
             if (existsSync(pathUser)) rmSync(pathUser, { recursive: true });
             // * Crear directorios
             mkdirSync(pathUser);
-            mkdirSync(pathUser + '/docs')
-            mkdirSync(pathUser + '/holidays')
-            mkdirSync(pathUser + '/courses')
+            mkdirSync(pathUser + '/docs');
+            mkdirSync(pathUser + '/holidays');
+            mkdirSync(pathUser + '/courses');
 
             return employee;
         });
@@ -94,6 +92,7 @@ export class EmployeeService {
             query.getCount(),
             query.offset(skip).limit(take).orderBy(order, orderDirection).getRawMany()
         ]);
+        
         return [employees, total];
     }
 
@@ -127,13 +126,13 @@ export class EmployeeService {
 
     public async toggleStatus(employee_id: string, userSession: User) {
         const employee = await this.findOneOrFail(employee_id);
-        if (employee.status === StatusUser.vacaciones) throw new CustomError(`Espere a que el periodo de vacaciones del empleado ${employee.name} termine`, 401);
+        if (employee.status !== StatusUser.vacaciones) throw new CustomError(`Espere a que el periodo de vacaciones del empleado ${employee.name} termine`, 400);
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
             await transactionalEntityManager.update(Employee, { employee_id }, { status: (employee.status === StatusUser.activo) ? StatusUser.baja : StatusUser.activo });
             await transactionalEntityManager.insert(Binnacle, {
                 modified_user_id: employee_id,
                 modifier_user_id: userSession.user_id,
-                type: ValidStateMov.alta
+                type: (employee.status === StatusUser.activo) ? ValidStateMov.baja : ValidStateMov.alta
             });
             return employee;
         })
@@ -141,10 +140,9 @@ export class EmployeeService {
 
     public async changePassword(passwordDTO: UpdatePasswordDTO, userSession: User) {
         const { old_password, password } = passwordDTO;
-        if (!bcrypt.compareSync(password, userSession.password)) throw new CustomError("La contraseña no coincide", 401);
+        if (!bcrypt.compareSync(old_password, userSession.password)) throw new CustomError("La contraseña no coincide", 403);
         return this.repository.manager.transaction(async (transactionalEntityManager) => {
-            await transactionalEntityManager.update(User, { user_id: userSession.user_id }, { password: bcrypt.hashSync(old_password, 10) });
-
+            await transactionalEntityManager.update(User, { user_id: userSession.user_id }, { password: bcrypt.hashSync(password, 10) });
             await transactionalEntityManager.insert(Binnacle, {
                 modified_user_id: userSession.user_id,
                 modifier_user_id: userSession.user_id,
@@ -155,7 +153,7 @@ export class EmployeeService {
         })
     }
 
-    public async myInfo(userSession: User) {
+    public myInfo(userSession: User) {
         return this.getQuery(EmployeeQueryContext.FROM_GENERAL)
             .where('employee.user_id = :employee_id', { employee_id: userSession.user_id })
             .getRawOne();
@@ -295,7 +293,7 @@ export class EmployeeService {
     }
 
     private getQuery(context: EmployeeQueryContext = EmployeeQueryContext.FROM_GENERAL) {
-        const query = this.repository.createQueryBuilder('employee')
+        const query = this.repository.createQueryBuilder('employee').withDeleted()
             .select(['employee.user_id as user_id', 'employee.gender as gender', 'employee.birthdate as birthdate', 'employee.curp as curp', 'employee.status as status', 'employee.rfc as rfc', 'employee.cuip as cuip', 'employee.num_children as num_children', 'employee.vacation_days as vacation_days', 'employee.boss_id as boss_id', 'employee.have_uniform as have_uniform', 'employee.num_infonavit as num_infonavit', 'employee.marital_status as marital_status', 'employee.place_registration as place_registration', 'employee.salary as salary', 'employee.cp_csf as cp_csf', 'employee.date_entry as date_entry', 'employee.position_id as position_id', 'employee.email as email', 'employee.cell_phone as cell_phone', 'employee.have_alimony as have_alimony', 'employee.cred_fonacot as cred_fonacot'])
             .leftJoin('employee.user', 'user')
             .leftJoin('employee.boss', 'boss')
@@ -373,6 +371,7 @@ export class EmployeeService {
     private getColumnsQuery(context: EmployeeQueryContext = EmployeeQueryContext.FROM_GENERAL): ColumnTypeMap<Employee> {
         const EMPLOYEE_COLUMNS_TYPES: ColumnTypeMap<Employee> = {
             // * entidad principal
+            user_id: { type: 'text', column: 'user.user_id', default: 'like' },
             name: { type: 'text', column: 'user.name', default: 'like' },
             salary: { type: 'number', column: 'employee.salary', default: 'eq' },
             birthdate: { type: 'date', column: 'employee.birthdate', default: 'eq' },

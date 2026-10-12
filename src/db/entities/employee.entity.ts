@@ -27,14 +27,15 @@ export class Employee {
     gender: string;
 
     @Column({
-        type: 'date',
+        type: 'date', nullable: true
     })
     birthdate: Date;
 
     @Column({
         type: 'varchar',
-        unique: true,
-        length: 18
+        // unique: true,
+        length: 18,
+        nullable: true
     })
     curp: string;
 
@@ -45,8 +46,9 @@ export class Employee {
 
     @Column({
         type: 'varchar',
-        unique: true,
-        length: 13
+        // unique: true,
+        length: 13,
+        nullable: true
     })
     rfc: string;
 
@@ -58,20 +60,21 @@ export class Employee {
 
     @Column({
         type: 'tinyint',
-        default: 0
+        default: 0,
+        nullable: true
     })
     num_children: number;
 
     @Column({
         type: 'smallint',
-        default: 0
+        default: 0,
     })
     vacation_days: number;
 
     @Column({ type: 'varchar', length: 5, nullable: true })
     boss_id: string;
 
-    @Column({ type: 'bit', default: false })
+    @Column({ type: 'bit', default: false, nullable: true })
     have_uniform: boolean;
 
     @Column({ type: 'varchar', nullable: true, length: 10 })
@@ -83,7 +86,7 @@ export class Employee {
     @Column({ type: 'varchar', length: 200, nullable: true })
     place_registration: string;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'int', nullable: true })
     salary: number;
 
     @Column({ type: 'char', length: 5, nullable: true })
@@ -98,13 +101,13 @@ export class Employee {
     position_id: number;
 
     // * New columns
-    @Column({type: 'varchar', length: 254 })
+    @Column({type: 'varchar', length: 254, nullable: true })
     email: string;
 
     @Column({ type: 'varchar', length: 10, nullable: true })
     cell_phone: string;
 
-    @Column({type: 'bit', default: false})
+    @Column({type: 'bit', default: false, nullable: true})
     have_alimony: boolean;
 
     @Column({ type: 'varchar', nullable: true, length: 10 })

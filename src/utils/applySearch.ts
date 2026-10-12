@@ -1,5 +1,5 @@
 import { SelectQueryBuilder } from "typeorm";
-import { ColumnConfig, ColumnTypeMap, Operators } from '../types/search_type';
+import { ColumnConfig, Operators } from '../types/search_type';
 import { operatorsByType } from "./operatorsByType";
 import dayjs from '../utils/dayjs'
 
@@ -14,6 +14,8 @@ export const applyQueryFilters = <T>(queryBuilder: SelectQueryBuilder<T>, query:
 
   const getValueParam = (value: QueryParams[string]): string | undefined => {
     if (typeof value === "string") {
+      console.log(value);
+      // if(value === "NULL")
       return value;
     }
     if (Array.isArray(value) && typeof value[0] === "string") {

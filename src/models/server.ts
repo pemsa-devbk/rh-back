@@ -1,5 +1,6 @@
 import express, { Application, NextFunction, Request, Response } from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import { join } from 'path'
 import logger from '../config/logger';
@@ -9,10 +10,9 @@ import { TaskService } from '../services/task.service';
 import { BirthdayService } from '../services/birthday.service';
 import { UserService } from '../services/user.service';
 import fileUpload from 'express-fileupload';
-import authRoutes from '../routes/auth.route'
-import seedRoutes from '../routes/seed.route'
+import {SeedRoute} from '../routes/seed.route'
 
-import { ContractRoute, CourseRoute, StateRoute, MunicipalityRoute, ColonyRoute, BankRoute, EmployeeRoute, DepartmentRoute, AddressRoute, MedicalRoute, BankingDetailsRoute, LicenseRoute, EnterpriseInformationRoute, FileRoute ,HolidayRoute ,BinnacleRoute ,AreaRoute ,PositionRoute ,OfficeRoute ,UserRoute ,ConfigRoute ,EnterpriseRoute } from '../routes/index.route'
+import { ContractRoute, CourseRoute, StateRoute, MunicipalityRoute, ColonyRoute, BankRoute, EmployeeRoute, DepartmentRoute, AddressRoute, MedicalRoute, BankingDetailsRoute, LicenseRoute, EnterpriseInformationRoute, FileRoute ,HolidayRoute ,BinnacleRoute ,AreaRoute ,PositionRoute ,OfficeRoute ,UserRoute ,ConfigRoute ,EnterpriseRoute, AuthRoute } from '../routes/index.route'
 
 
 export class Server {
@@ -21,7 +21,6 @@ export class Server {
 
     //definir los paths, Rutas: 
     private paths = {
-        auth: '/auth',
         seed: '/seed',
     }
     constructor() {
@@ -34,8 +33,12 @@ export class Server {
 
     //se configuran los puertos middlewares:
     private middlewares() {
-        this.app.use(cors()); //permite acceder a los recursos restringidos de un sitio desde otro dominio
+        this.app.use(cors({
+            origin: 'http://localhost:5173',
+            credentials: true,
+        })); //permite acceder a los recursos restringidos de un sitio desde otro dominio
         this.app.use(express.json());
+        this.app.use(cookieParser());
         this.app.use(fileUpload());
         this.app.use(morgan('dev')); //permite el manejo de los loggers de las solicitudes de Entrada.
         //en caso de tener archivos estáticos, express los manejara
@@ -45,9 +48,10 @@ export class Server {
 
     private routes() {
         //this. porque vas a usar una propiedad
-
-        this.app.use(this.paths.auth, authRoutes);
-        this.app.use(this.paths.seed, seedRoutes);
+        const authRouter = new AuthRoute();
+        this.app.use(authRouter.router);
+        const seedRouter = new SeedRoute();
+        this.app.use(seedRouter.router);
 
         // * Nueva forma
         const fileRoute = new FileRoute();
@@ -110,7 +114,6 @@ export class Server {
             // console.log(users);
 
             // const rp = bb.template_2([...users, ...users]);
-
 
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader('Content-Disposition', `inline; filename=doc.pdf`);

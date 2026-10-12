@@ -1,59 +1,53 @@
-import { plainToInstance } from "class-transformer";
-import { Request, Response } from "express";
-import { AuthDTO } from "../Dto/auth/auth.dto";
-import { appDataSource } from "../db/dataBase";
-import { User } from "../db/entities/user.entity";
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import {readFileSync} from 'fs'
-import {join} from 'path'
+import { NextFunction, Request, Response } from "express";
+import { AuthService } from "../services/auth.service";
 
-export const authLogin = async (req: Request, res: Response) => {
-    //logica de negocio: pasamos a txto plano  
-    const login = plainToInstance(AuthDTO, req.body);
-    const userRepository = appDataSource.getRepository(User);
 
-    const user = await userRepository.findOne({ 
-        where: {user_id: login.user_id}, 
-        relations: {rol: true},
-        select:{
-            user_id: true,
-            name: true,
-            password: true,
-            rol: {name: true},
-            update_at:true,
-            deleted_at:true,
+export class AuthController {
+    constructor(
+        private readonly authService = new AuthService()
+    ) { }
+
+    public login = async (req: Request, res: Response, next: NextFunction) => {
+        const dto = req.body;
+        try {
+            const { refreshToken, token, user } = await this.authService.auth(dto);
+            
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false, //enviroment.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
+            })
+            res.json({ user, token });
+        } catch (error) {
+            next(error);
         }
-    });
-    
-    if(user && bcrypt.compareSync(login.password, user.password)){
-        delete user.password;
-        const userInfo = user;
-        return res.json({
-            user: {
-                ...userInfo,
-            },
-            token: generateToken(user.user_id)
-        })
     }
-    res.status(401).json ({
-        error: 'Credenciales invalidas'
-    })
+
+    public check = (req: Request, res: Response, next: NextFunction) => {
+        try {
+            // const token = this.authService.check(req.user);
+            res.json({
+                user: req.user,
+            });
+        } catch (error) {
+            next(error);
+        }
+
+    }
+
+    public refresh = (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const refreshToken = req.cookies.refreshToken;
+            const token = this.authService.refresh(refreshToken);
+            res.json({
+                token,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 
-export const checkLogin = (req: Request, res: Response) => {
-    res.json({
-        user: {
-            ...req.user,
-        },
-        token: generateToken(req.user.user_id)
-    })
-}
-
-
-const generateToken = (id: string) =>{
-    //generamos el token que nos sirve para acceder a nuestro sitio como admin n.n
-    const path = join( __dirname, '../', '/certs', 'private.pem')
-    return jwt.sign({id}, readFileSync(path), {algorithm:'RS256', expiresIn: '12h'});
-}

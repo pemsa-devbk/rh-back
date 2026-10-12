@@ -154,7 +154,7 @@ export class FileService {
                 employee: {
                     medicalData: true, enterpriseInformation: true, position: true
                 }
-            }
+            }, withDeleted: true
         });
 
         if (!employee) throw new CustomError("No existe el empleado", 400);

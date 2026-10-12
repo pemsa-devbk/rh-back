@@ -8,7 +8,7 @@ export const autorizationCheck = (roles: number[]) =>{
             return next();
         }
         
-        return res.status(401).json({
+        return res.status(403).json({
             error: `Este usuario: ${req.user.user_id} no tiene los permisos necesarios`
         })
     }
